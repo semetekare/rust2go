@@ -1,3 +1,6 @@
+```go run ./cmd/main.go ./example/example.rs```
+
+
 ```
 rust2go/ # корень проекта 
 ├── cmd/ 
@@ -22,7 +25,8 @@ rust2go/ # корень проекта
 │ │ └── ir.go │ ├── backend/ # генерация кода (Go, WASM, и т.д.) 
 │ │ └── go_backend.go 
 │ └── util/ # вспомогательные утилиты: errors, positions, testing helpers  
+├── example/ 
+│ ├── example.rs/ # пример кода на Rust 
 ├── go.mod 
-├── Makefile 
 └── README.md
 ```

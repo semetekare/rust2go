@@ -4,7 +4,8 @@ package lexer
 import (
 	"fmt"
 	"unicode"
-	"../token"
+	
+	"github.com/semetekare/rust2go/internal/token"
 )
 
 // lexer — приватная структура, содержащая состояние сканирования.
@@ -18,7 +19,7 @@ type lexer struct {
 	ch           rune              // текущая просматриваемая руна
 	line         int               // текущая строка (1-based)
 	col          int               // текущая колонка (1-based)
-	tokens       []Token           // накопленные токены
+	tokens       []token.Token           // накопленные токены
 	err          error             // первая возникшая ошибка
 	keywords     map[string]bool   // таблица ключевых слов
 	operators    map[string]bool   // таблица операторов (включая многосимвольные)
@@ -28,7 +29,7 @@ type lexer struct {
 // LexerUseCase — интерфейс лексера. Отделяет реализацию от места вызова.
 type LexerUseCase interface {
 	// Lex принимает входную строку и возвращает слайс токенов или ошибку.
-	Lex(input string) ([]Token, error)
+	Lex(input string) ([]token.Token, error)
 }
 
 // New создаёт и инициализирует новый лексер.
@@ -44,7 +45,7 @@ func New() *lexer {
 
 // Lex запускает разбор входной строки и возвращает слайс токенов.
 // Основная точка входа для использования лексера.
-func (l *lexer) Lex(input string) ([]Token, error) {
+func (l *lexer) Lex(input string) ([]token.Token, error) {
 	l.input = input
 	l.runes = []rune(input) // переводим в runes, чтобы корректно работать с UTF-8
 	l.length = len(l.runes)
@@ -63,7 +64,7 @@ func (l *lexer) Lex(input string) ([]Token, error) {
 	}
 
 	// Добавляем EOF токен в конец
-	l.tokens = append(l.tokens, Token{Type: EOF, Line: l.line, Col: l.col})
+	l.tokens = append(l.tokens, token.Token{Type: token.EOF, Line: l.line, Col: l.col})
 	return l.tokens, nil
 }
 
@@ -157,7 +158,7 @@ func (l *lexer) readIdentifier() string {
 
 // readLifetimeOrChar различает lifetime ('a) и char ('a').
 // Логика: если после имени идёт закрывающий апостроф — это символьный литерал.
-func (l *lexer) readLifetimeOrChar() (string, TokenType) {
+func (l *lexer) readLifetimeOrChar() (string, token.TokenType) {
 	// at '\''
 	// if pattern is '\'x\'' -> char (single rune possibly escaped)
 	// else it's lifetime: '\'name'
@@ -170,10 +171,10 @@ func (l *lexer) readLifetimeOrChar() (string, TokenType) {
 	// если следующий символ — апостроф, то это формат 'x' -> CHAR
 	if l.ch == '\'' {
 		l.readChar()
-		return string(l.runes[start:l.pos]), CHAR
+		return string(l.runes[start:l.pos]), token.CHAR
 	}
 	// иначе — lifetime (без завершающего апострофа)
-	return string(l.runes[start:l.pos]), LIFETIME
+	return string(l.runes[start:l.pos]), token.LIFETIME
 }
 
 // readNumber читает целые и дробные литералы, учитывает префиксы 0b/0o/0x,
@@ -321,7 +322,7 @@ func containsDotOrExp(s string) bool {
 func (l *lexer) nextToken() {
 	l.skipWhitespace()
 	if l.ch=='/' && (l.peek()=='/' || l.peek()=='*') { l.skipComment(); return }
-	tok := Token{Line: l.line, Col: l.col}
+	tok := token.Token{Line: l.line, Col: l.col}
 
 	switch {
 	case l.ch==0:
@@ -335,45 +336,45 @@ func (l *lexer) nextToken() {
 		// специальные префиксы для строк: r, br, b
 		if ident=="r" && (l.ch=='"'||l.ch=='#') { 
 			tok.Literal = l.readString("r"); 
-			tok.Type = STRING 
+			tok.Type = token.STRING 
 		} else if ident=="br" && (l.ch=='"'||l.ch=='#') { 
 			tok.Literal = l.readString("br"); 
-			tok.Type = STRING 
+			tok.Type = token.STRING 
 		} else if ident=="b" && l.ch=='"' { 
 			tok.Literal = l.readString("b"); 
-			tok.Type = STRING 
+			tok.Type = token.STRING 
 		} else { 
 			tok.Literal = ident; 
 			if l.keywords[ident] { 
-				tok.Type = KEYWORD 
+				tok.Type = token.KEYWORD 
 			} else {
-				tok.Type = IDENT 
+				tok.Type = token.IDENT 
 			} 
 		}
 	case unicode.IsDigit(l.ch):
 		tok.Literal = l.readNumber();
 		if containsDotOrExp(tok.Literal) {
-			tok.Type = FLOAT
+			tok.Type = token.FLOAT
 		} else {
-			tok.Type = INT
+			tok.Type = token.INT
 		}
 	case l.ch=='"':
 		tok.Literal = l.readString("");
-		tok.Type = STRING
+		tok.Type = token.STRING
 	case l.ch=='#':
 		tok.Literal = l.readAttr();
-		tok.Type = ATTRIBUTE
+		tok.Type = token.ATTRIBUTE
 	case isOpChar(l.ch) || isPunct(l.ch):
 		tok.Literal = l.readOpOrPunct()
 		if l.operators[tok.Literal] {
-			tok.Type = OPERATOR
+			tok.Type = token.OPERATOR
 		} else if l.punctuations[tok.Literal] {
-			tok.Type = PUNCT
+			tok.Type = token.PUNCT
 		} else {
-			tok.Type = ILLEGAL
+			tok.Type = token.ILLEGAL
 		}
 	default:
-		tok.Type = ILLEGAL;
+		tok.Type = token.ILLEGAL;
 		tok.Literal = string(l.ch);
 		l.readChar()
 	}
