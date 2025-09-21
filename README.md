@@ -1,6 +1,4 @@
-<<<<<<< HEAD
-# rust2go
-=======
+```
 rust2go/ # корень проекта 
 ├── cmd/ 
 │ └── rust2go/ # CLI: точка входа (main.go) 
@@ -27,4 +25,4 @@ rust2go/ # корень проекта
 ├── go.mod 
 ├── Makefile 
 └── README.md
->>>>>>> cb766a7 (Initial commit: Set up Rust lexer project with Go)
+```
