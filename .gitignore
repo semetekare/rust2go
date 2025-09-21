@@ -1,0 +1,23 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories (managed by Go modules)
+vendor/
+
+# Temporary files
+*.tmp
+*.swp
+
+# IDE-specific files (optional, add based on your editor)
+.idea/
+.vscode/
