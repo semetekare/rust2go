@@ -21,7 +21,7 @@ func main() {
 		fmt.Printf("read error: %v\n", err)
 		os.Exit(1)
 	}
-	lx := lexer.New()
+	lx := lexer.NewLexer()
 	toks, err := lx.Lex(string(b))
 	if err != nil {
 		fmt.Printf("lex error: %v\n", err)

@@ -4,9 +4,11 @@ fn main() {
     let y = 3.14e2f64;
     let s = r#"raw string"#;
     let c = 'a';
+    int i = 1;
     'loop: loop {
         break 'loop;
     }
+    @!~
     // Comment
     /* Nested /* comment */ */
 }
