@@ -1,5 +1,22 @@
+# Запуск
 ```go run ./cmd/main.go ./example/example.rs```
 
+---
+
+# Тесты
+```go test ./internal/parser```
+
+>Тест позитивных исходов:
+>
+>```go test -run TestPositiveSyntax ./internal/parser```
+
+>Тест негативных исходов
+>
+>```go test -run TestNegativeSyntax ./internal/parser```
+
+
+---
+# Структура проекта
 
 ```
 rust2go/ # корень проекта 
@@ -27,6 +44,15 @@ rust2go/ # корень проекта
 │ └── util/ # вспомогательные утилиты: errors, positions, testing helpers  
 ├── example/ 
 │ ├── example.rs/ # пример кода на Rust 
+├── testdata/               # ДИРЕКТОРИЯ ДЛЯ ТЕСТОВЫХ ФАЙЛОВ
+│   ├── positive/           # Корректные конструкции
+│   │   ├── fn_simple.rs
+│   │   ├── let_bind.rs
+│   │   └── expr_complex.rs
+│   └── negative/           # Синтаксические ошибки
+│       ├── missing_semi.rs
+│       ├── missing_paren.rs
+│       └── bad_operator.rs
 ├── go.mod 
 └── README.md
 ```
