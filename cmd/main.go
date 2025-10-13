@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/semetekare/rust2go/internal/ast"
 	"github.com/semetekare/rust2go/internal/lexer"
-	"github.com/semetekare/rust2go/internal/token"
+	"github.com/semetekare/rust2go/internal/parser"
 )
 
 // main — пример использования лексера: читает файл и печатает токены.
 // CLI: go run main.go example.rs
 func main() {
-	if len(os.Args) < 2 {
+if len(os.Args) < 2 {
 		fmt.Println("Usage: rust2go <file.rs>")
 		os.Exit(1)
 	}
@@ -27,10 +28,14 @@ func main() {
 		fmt.Printf("lex error: %v\n", err)
 		os.Exit(1)
 	}
-	for _, t := range toks {
-		if t.Type == token.EOF {
-			break
+	p := parser.NewParser(toks)
+	fileAST, errs := p.ParseFile()
+	if len(errs) > 0 {
+		for _, e := range errs {
+			fmt.Println(e)
 		}
-		fmt.Printf("%s: %q at %d:%d\n", t.String(), t.Literal, t.Line, t.Col)
+	} else {
+		fmt.Println("Parsing succeeded, AST:")
+		fmt.Println(ast.PrettyPrint(fileAST))
 	}
 }

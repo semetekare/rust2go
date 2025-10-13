@@ -147,6 +147,9 @@ func (l *Lexer) readIdentifier() string {
 	for unicode.IsLetter(l.ch) || unicode.IsDigit(l.ch) || l.ch == '_' {
 		l.readChar()
 	}
+	if l.ch == '!' {
+		l.readChar()
+	}
 	return string(l.runes[start:l.pos])
 }
 
@@ -423,7 +426,7 @@ func (l *Lexer) nextToken() {
 	case l.ch == '"':
 		lit, subtype := l.readString("")
 		tok.Literal = lit
-		tok.Type = token.TYPE
+		tok.Type = token.STRING
 		tok.Subtype = subtype // "STRING"
 	case l.ch == '\'':
 		lit, ttype, subtype := l.readLifetimeOrChar()
