@@ -9,6 +9,8 @@ fn main() {
     // Вызов другой функции
     greet_user("Алексей");
     
+    println!(hello_user("Данил"));
+
     // Работа с результатом функции
     let number = 7;
     let is_even_result = is_even(number);
@@ -25,6 +27,10 @@ fn add_numbers(a: i32, b: i32) -> i32 {
 // Функция для приветствия пользователя
 fn greet_user(name: &str) {
     println!("Привет, {}! Добро пожаловать в Rust!", name);
+}
+
+fn hello_user(name: &str) -> String {
+    format!("Привет {}!", name)
 }
 
 // Функция, проверяющая чётность числа
