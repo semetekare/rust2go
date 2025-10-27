@@ -80,8 +80,8 @@ func prettyPrintNode(sb *strings.Builder, n Node, indent int) {
 	case *BlockExpr:
 		// Печатаем внутренний блок.
 		prettyPrintNode(sb, node.Block, indent+1)
-	// Листовые узлы (например, Literal, PathType, Param, Field) не имеют дочерних узлов,
-	// поэтому для них отдельные case не требуются.
+		// Листовые узлы (например, Literal, PathType, Param, Field) не имеют дочерних узлов,
+		// поэтому для них отдельные case не требуются.
 	}
 }
 

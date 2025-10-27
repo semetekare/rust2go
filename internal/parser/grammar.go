@@ -122,6 +122,7 @@ func (p *Parser) ParseExpr() ast.Expr {
 //   - nextParser: функцию для парсинга подвыражения более высокого приоритета,
 //   - ops: список операторов текущего приоритета,
 //   - assoc: ассоциативность (в текущей реализации всегда левая).
+//
 // Возвращает построенное бинарное выражение или nil в случае ошибки.
 func (p *Parser) parseBinary(nextParser func() ast.Expr, ops []string, assoc bool) ast.Expr {
 	expr := nextParser()
@@ -273,6 +274,7 @@ func (p *Parser) parsePrimary() ast.Expr {
 //   - объявления переменных: `let x: i32 = 42;`
 //   - выражения с точкой с запятой: `foo();`
 //   - tail-выражения в блоках (без ';').
+//
 // В случае синтаксической ошибки возвращает nil и полагается на восстановление в вызывающем коде.
 func (p *Parser) ParseStmt() ast.Stmt {
 	tok := p.stream.Peek()

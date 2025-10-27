@@ -25,3 +25,11 @@ var Punctuations = map[string]bool{
 	"{": true, "}": true, "(": true, ")": true, "[": true, "]": true,
 	";": true, ",": true, ":": true, "::": true, ".": true, "..": true,
 }
+
+// BuiltinMacros содержит список встроенных макросов Rust (макросы, заканчивающиеся на !).
+var BuiltinMacros = map[string]bool{
+	"println!": true, "print!": true, "eprintln!": true, "eprint!": true,
+	"format!": true, "panic!": true, "assert!": true, "assert_eq!": true,
+	"vec!": true, "format_args!": true, "write!": true, "writeln!": true,
+	"dbg!": true, "todo!": true, "unimplemented!": true, "unreachable!": true,
+}

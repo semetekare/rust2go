@@ -11,29 +11,31 @@ import (
 // lexer — приватная структура, содержащая состояние сканирования.
 // Внутренне хранит input как []rune для корректной работы с Unicode.
 type Lexer struct {
-	input        string            // исходный текст (как строка)
-	runes        []rune            // исходный текст как срез рун (Unicode-aware)
-	length       int               // длина s runes
-	pos          int               // текущий индекс рун
-	readPos      int               // индекс следующей руны
-	ch           rune              // текущая просматриваемая руна
-	line         int               // текущая строка (1-based)
-	col          int               // текущая колонка (1-based)
-	tokens       []token.Token           // накопленные токены
-	err          error             // первая возникшая ошибка
-	keywords     map[string]bool   // таблица ключевых слов
-	operators    map[string]bool   // таблица операторов (включая многосимвольные)
-	punctuations map[string]bool   // таблица пунктуации (включая многосимвольные)
+	input         string          // исходный текст (как строка)
+	runes         []rune          // исходный текст как срез рун (Unicode-aware)
+	length        int             // длина s runes
+	pos           int             // текущий индекс рун
+	readPos       int             // индекс следующей руны
+	ch            rune            // текущая просматриваемая руна
+	line          int             // текущая строка (1-based)
+	col           int             // текущая колонка (1-based)
+	tokens        []token.Token   // накопленные токены
+	err           error           // первая возникшая ошибка
+	keywords      map[string]bool // таблица ключевых слов
+	operators     map[string]bool // таблица операторов (включая многосимвольные)
+	punctuations  map[string]bool // таблица пунктуации (включая многосимвольные)
+	builtinMacros map[string]bool // таблица встроенных макросов
 }
 
 // NewLexer создаёт и инициализирует лексер.
 func NewLexer() *Lexer {
 	return &Lexer{
-		line:         1,
-		col:          0,
-		keywords:     Keywords,
-		operators:    Operators,
-		punctuations: Punctuations,
+		line:          1,
+		col:           0,
+		keywords:      Keywords,
+		operators:     Operators,
+		punctuations:  Punctuations,
+		builtinMacros: BuiltinMacros,
 	}
 }
 
@@ -113,13 +115,18 @@ func (l *Lexer) skipComment() {
 			l.readChar()
 		}
 	} else if l.ch == '/' && l.peek() == '*' {
-		l.readChar(); l.readChar()
+		l.readChar()
+		l.readChar()
 		nest := 1
 		for l.ch != 0 && nest > 0 {
 			if l.ch == '/' && l.peek() == '*' {
-				l.readChar(); l.readChar(); nest++
+				l.readChar()
+				l.readChar()
+				nest++
 			} else if l.ch == '*' && l.peek() == '/' {
-				l.readChar(); l.readChar(); nest--
+				l.readChar()
+				l.readChar()
+				nest--
 			} else {
 				l.readChar()
 			}
@@ -135,8 +142,12 @@ func isDigitInBase(ch rune, base int) bool {
 		return d < base
 	}
 	if base == 16 {
-		if ch >= 'a' && ch <= 'f' { return true }
-		if ch >= 'A' && ch <= 'F' { return true }
+		if ch >= 'a' && ch <= 'f' {
+			return true
+		}
+		if ch >= 'A' && ch <= 'F' {
+			return true
+		}
 	}
 	return false
 }
@@ -185,10 +196,17 @@ func (l *Lexer) readNumber() (string, string) {
 		if l.peek() == 'b' || l.peek() == 'o' || l.peek() == 'x' {
 			l.readChar()
 			switch l.ch {
-			case 'b': base=2; l.readChar()
-			case 'o': base=8; l.readChar()
-			case 'x': base=16; l.readChar()
-			default: base=10
+			case 'b':
+				base = 2
+				l.readChar()
+			case 'o':
+				base = 8
+				l.readChar()
+			case 'x':
+				base = 16
+				l.readChar()
+			default:
+				base = 10
 			}
 		}
 	}
@@ -414,6 +432,10 @@ func (l *Lexer) nextToken() {
 			tok.Literal = prefix
 			if l.keywords[tok.Literal] {
 				tok.Type = token.KEYWORD
+			} else if l.builtinMacros[tok.Literal] {
+				// Встроенные макросы трактуются как IDENT с особым Subtype
+				tok.Type = token.IDENT
+				tok.Subtype = "MACRO"
 			} else {
 				tok.Type = token.IDENT
 			}

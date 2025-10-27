@@ -1,0 +1,2376 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>cmd: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/semetekare/rust2go/cmd/main.go (0.0%)</option>
+				
+				<option value="file1">github.com/semetekare/rust2go/internal/ast/nodes.go (51.9%)</option>
+				
+				<option value="file2">github.com/semetekare/rust2go/internal/ast/printer.go (96.6%)</option>
+				
+				<option value="file3">github.com/semetekare/rust2go/internal/lexer/lexer.go (84.3%)</option>
+				
+				<option value="file4">github.com/semetekare/rust2go/internal/lexer/scanner.go (0.0%)</option>
+				
+				<option value="file5">github.com/semetekare/rust2go/internal/parser/grammar.go (78.6%)</option>
+				
+				<option value="file6">github.com/semetekare/rust2go/internal/parser/parser.go (88.2%)</option>
+				
+				<option value="file7">github.com/semetekare/rust2go/internal/parser/stream.go (81.8%)</option>
+				
+				<option value="file8">github.com/semetekare/rust2go/internal/sema/checker.go (77.9%)</option>
+				
+				<option value="file9">github.com/semetekare/rust2go/internal/token/token.go (85.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">// CLI точка входа для rust2go.
+package main
+
+import (
+        "fmt"
+        "os"
+
+        "github.com/semetekare/rust2go/internal/ast"
+        "github.com/semetekare/rust2go/internal/lexer"
+        "github.com/semetekare/rust2go/internal/parser"
+        "github.com/semetekare/rust2go/internal/sema"
+)
+
+// main — пример использования лексера: читает файл и печатает токены.
+// CLI: go run main.go example.rs
+func main() <span class="cov0" title="0">{
+        if len(os.Args) &lt; 2 </span><span class="cov0" title="0">{
+                fmt.Println("Usage: rust2go &lt;file.rs&gt;")
+                os.Exit(1)
+        }</span>
+        <span class="cov0" title="0">b, err := os.ReadFile(os.Args[1])
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Printf("read error: %v\n", err)
+                os.Exit(1)
+        }</span>
+        <span class="cov0" title="0">lx := lexer.NewLexer()
+        toks, err := lx.Lex(string(b))
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Printf("lex error: %v\n", err)
+                os.Exit(1)
+        }</span>
+        <span class="cov0" title="0">p := parser.NewParser(toks)
+        fileAST, errs := p.ParseFile()
+        if len(errs) &gt; 0 </span><span class="cov0" title="0">{
+                for _, e := range errs </span><span class="cov0" title="0">{
+                        fmt.Println(e)
+                }</span>
+        } else<span class="cov0" title="0"> {
+                fmt.Println("Parsing succeeded, AST:")
+                fmt.Println(ast.PrettyPrint(fileAST))
+                
+                // Семантический анализ
+                fmt.Println("\n=== Semantic Analysis ===")
+                checker := sema.NewChecker()
+                semErrs := checker.Check(fileAST)
+                if len(semErrs) &gt; 0 </span><span class="cov0" title="0">{
+                        fmt.Printf("Found %d semantic error(s):\n", len(semErrs))
+                        for _, e := range semErrs </span><span class="cov0" title="0">{
+                                fmt.Println(e)
+                        }</span>
+                } else<span class="cov0" title="0"> {
+                        fmt.Println("Semantic analysis passed successfully!")
+                }</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">// internal/ast/nodes.go
+
+// Package ast определяет абстрактное синтаксическое дерево (AST) для представления
+// синтаксической структуры Rust-подобного языка, транслируемого в Go.
+package ast
+
+import (
+        "fmt"
+
+        "github.com/semetekare/rust2go/internal/token"
+)
+
+// Position — псевдоним для token.Position, представляющий позицию в исходном коде.
+type Position = token.Position
+
+// Node — базовый интерфейс для всех узлов AST.
+// Любой узел должен знать свою позицию в исходном коде и уметь преобразовываться в строку.
+type Node interface {
+        // Pos возвращает позицию узла в исходном коде.
+        Pos() Position
+        // String возвращает человекочитаемое строковое представление узла (в основном для отладки).
+        String() string
+}
+
+// Crate представляет корень AST — единицу компиляции (crate).
+// Соответствует грамматике: Crate ::= InnerAttribute* Item*
+type Crate struct {
+        pos   Position // Позиция начала crate в исходном коде.
+        Items []Item   // Список элементов верхнего уровня (функций, структур и т.д.).
+}
+
+// Pos возвращает позицию начала crate.
+func (c *Crate) Pos() Position <span class="cov8" title="1">{ return c.pos }</span>
+
+// String возвращает строковое представление crate.
+func (c *Crate) String() string <span class="cov8" title="1">{ return fmt.Sprintf("Crate{Items: %d}", len(c.Items)) }</span>
+
+// NewCrate создаёт новый экземпляр Crate с заданной позицией и списком элементов.
+func NewCrate(pos Position, items []Item) *Crate <span class="cov8" title="1">{
+        return &amp;Crate{pos: pos, Items: items}
+}</span>
+
+// Item — интерфейс для элементов верхнего уровня (items) в crate.
+// Примеры: функции, структуры, константы и т.д.
+type Item interface {
+        Node
+        // itemString возвращает строковое представление элемента (для внутреннего использования).
+        itemString() string
+}
+
+// Function представляет определение функции.
+// Соответствует грамматике: Function ::= "fn" IDENTIFIER "(" Param* ")" [ "-&gt;" Type ] Block
+type Function struct {
+        pos        Position // Позиция ключевого слова "fn".
+        Name       string   // Имя функции.
+        Params     []Param  // Список параметров.
+        ReturnType Type     // Возвращаемый тип (может быть nil для unit).
+        Body       *Block   // Тело функции.
+}
+
+// Pos возвращает позицию начала функции.
+func (f *Function) Pos() Position <span class="cov0" title="0">{ return f.pos }</span>
+
+// String возвращает строковое представление функции.
+func (f *Function) String() string <span class="cov8" title="1">{ return fmt.Sprintf("Function{Name: %s}", f.Name) }</span>
+
+// itemString реализует интерфейс Item.
+func (f *Function) itemString() string <span class="cov0" title="0">{ return f.String() }</span>
+
+// NewFunction создаёт новый узел Function.
+func NewFunction(pos Position, name string, params []Param, returnType Type, body *Block) *Function <span class="cov8" title="1">{
+        return &amp;Function{pos: pos, Name: name, Params: params, ReturnType: returnType, Body: body}
+}</span>
+
+// Struct представляет определение структуры.
+// Соответствует грамматике: Struct ::= "struct" IDENTIFIER "{" Field* "}"
+type Struct struct {
+        pos    Position // Позиция ключевого слова "struct".
+        Name   string   // Имя структуры.
+        Fields []Field  // Список полей структуры.
+}
+
+// Pos возвращает позицию начала структуры.
+func (s *Struct) Pos() Position <span class="cov0" title="0">{ return s.pos }</span>
+
+// String возвращает строковое представление структуры.
+func (s *Struct) String() string <span class="cov8" title="1">{ return fmt.Sprintf("Struct{Name: %s}", s.Name) }</span>
+
+// itemString реализует интерфейс Item.
+func (s *Struct) itemString() string <span class="cov0" title="0">{ return s.String() }</span>
+
+// NewStruct создаёт новый узел Struct.
+func NewStruct(pos Position, name string, fields []Field) *Struct <span class="cov8" title="1">{
+        return &amp;Struct{pos: pos, Name: name, Fields: fields}
+}</span>
+
+// Field представляет поле структуры.
+// Соответствует грамматике: Field ::= IDENTIFIER ":" Type
+type Field struct {
+        pos  Position // Позиция имени поля.
+        Name string   // Имя поля.
+        Type Type     // Тип поля.
+}
+
+// Pos возвращает позицию начала поля.
+func (f *Field) Pos() Position <span class="cov0" title="0">{ return f.pos }</span>
+
+// String возвращает строковое представление поля.
+func (f *Field) String() string <span class="cov8" title="1">{ return fmt.Sprintf("Field{Name: %s}", f.Name) }</span>
+
+// NewField создаёт новый узел Field.
+func NewField(pos Position, name string, typ Type) *Field <span class="cov8" title="1">{
+        return &amp;Field{pos: pos, Name: name, Type: typ}
+}</span>
+
+// Stmt — интерфейс для всех видов операторов (statements).
+type Stmt interface {
+        Node
+        // stmtString возвращает строковое представление оператора (для внутреннего использования).
+        stmtString() string
+}
+
+// LetStmt представляет оператор объявления переменной.
+// Соответствует грамматике: "let" IDENTIFIER [":" Type] "=" Expr ";"
+// В текущей реализации шаблон (Pattern) упрощён до идентификатора.
+type LetStmt struct {
+        pos  Position // Позиция ключевого слова "let".
+        Name string   // Имя переменной.
+        Type Type     // Тип переменной (может быть nil для вывода типа).
+        Init Expr     // Выражение инициализации.
+}
+
+// Pos возвращает позицию начала оператора let.
+func (ls *LetStmt) Pos() Position <span class="cov0" title="0">{ return ls.pos }</span>
+
+// String возвращает строковое представление оператора let.
+func (ls *LetStmt) String() string <span class="cov8" title="1">{ return fmt.Sprintf("LetStmt{Name: %s}", ls.Name) }</span>
+
+// stmtString реализует интерфейс Stmt.
+func (ls *LetStmt) stmtString() string <span class="cov0" title="0">{ return ls.String() }</span>
+
+// NewLetStmt создаёт новый узел LetStmt.
+func NewLetStmt(pos Position, name string, typ Type, init Expr) *LetStmt <span class="cov8" title="1">{
+        return &amp;LetStmt{pos: pos, Name: name, Type: typ, Init: init}
+}</span>
+
+// ExprStmt представляет выражение, используемое как оператор (например, вызов функции без присваивания).
+type ExprStmt struct {
+        pos  Position // Позиция выражения.
+        Expr Expr     // Выражение.
+}
+
+// Pos возвращает позицию выражения-оператора.
+func (es *ExprStmt) Pos() Position <span class="cov0" title="0">{ return es.pos }</span>
+
+// String возвращает строковое представление выражения-оператора.
+func (es *ExprStmt) String() string <span class="cov8" title="1">{ return "ExprStmt" }</span>
+
+// stmtString реализует интерфейс Stmt.
+func (es *ExprStmt) stmtString() string <span class="cov0" title="0">{ return es.String() }</span>
+
+// NewExprStmt создаёт новый узел ExprStmt.
+func NewExprStmt(pos Position, expr Expr) *ExprStmt <span class="cov8" title="1">{
+        return &amp;ExprStmt{pos: pos, Expr: expr}
+}</span>
+
+// Block представляет блок кода, ограниченный фигурными скобками.
+// Соответствует грамматике: Block ::= "{" Stmt* "}"
+type Block struct {
+        pos   Position // Позиция открывающей скобки "{".
+        Stmts []Stmt   // Список операторов внутри блока.
+}
+
+// Pos возвращает позицию начала блока.
+func (b *Block) Pos() Position <span class="cov0" title="0">{ return b.pos }</span>
+
+// String возвращает строковое представление блока.
+func (b *Block) String() string <span class="cov8" title="1">{ return fmt.Sprintf("Block{Stmts: %d}", len(b.Stmts)) }</span>
+
+// stmtString реализует интерфейс Stmt (блок может использоваться как оператор).
+func (b *Block) stmtString() string <span class="cov0" title="0">{ return b.String() }</span>
+
+// exprString реализует интерфейс Expr (блок может использоваться как выражение).
+func (b *Block) exprString() string <span class="cov0" title="0">{ return b.String() }</span>
+
+// NewBlock создаёт новый узел Block.
+func NewBlock(pos Position, stmts []Stmt) *Block <span class="cov8" title="1">{
+        return &amp;Block{pos: pos, Stmts: stmts}
+}</span>
+
+// Expr — интерфейс для всех выражений.
+type Expr interface {
+        Node
+        // exprString возвращает строковое представление выражения (для внутреннего использования).
+        exprString() string
+}
+
+// UnaryExpr представляет унарное выражение (например, `-x`, `!flag`).
+type UnaryExpr struct {
+        pos  Position // Позиция оператора.
+        Op   string   // Оператор (например, "-", "!", "*").
+        Expr Expr     // Операнд.
+}
+
+// Pos возвращает позицию унарного оператора.
+func (ue *UnaryExpr) Pos() Position <span class="cov0" title="0">{ return ue.pos }</span>
+
+// String возвращает строковое представление унарного выражения.
+func (ue *UnaryExpr) String() string <span class="cov8" title="1">{ return fmt.Sprintf("UnaryExpr{%s}", ue.Op) }</span>
+
+// exprString реализует интерфейс Expr.
+func (ue *UnaryExpr) exprString() string <span class="cov0" title="0">{ return ue.String() }</span>
+
+// NewUnaryExpr создаёт новый узел UnaryExpr.
+func NewUnaryExpr(pos Position, op string, expr Expr) *UnaryExpr <span class="cov8" title="1">{
+        return &amp;UnaryExpr{pos: pos, Op: op, Expr: expr}
+}</span>
+
+// BinaryExpr представляет бинарное выражение (например, `a + b`, `x == y`).
+type BinaryExpr struct {
+        pos   Position // Позиция оператора.
+        Left  Expr     // Левый операнд.
+        Op    string   // Бинарный оператор ("+", "-", "==", "&lt;", и т.д.).
+        Right Expr     // Правый операнд.
+}
+
+// Pos возвращает позицию бинарного оператора.
+func (be *BinaryExpr) Pos() Position <span class="cov0" title="0">{ return be.pos }</span>
+
+// String возвращает строковое представление бинарного выражения.
+func (be *BinaryExpr) String() string <span class="cov8" title="1">{ return fmt.Sprintf("BinaryExpr{%s}", be.Op) }</span>
+
+// exprString реализует интерфейс Expr.
+func (be *BinaryExpr) exprString() string <span class="cov0" title="0">{ return be.String() }</span>
+
+// NewBinaryExpr создаёт новый узел BinaryExpr.
+func NewBinaryExpr(pos Position, left Expr, op string, right Expr) *BinaryExpr <span class="cov8" title="1">{
+        return &amp;BinaryExpr{pos: pos, Left: left, Op: op, Right: right}
+}</span>
+
+// Literal представляет литеральное значение (целое число, строка и т.д.).
+type Literal struct {
+        pos  Position // Позиция литерала в исходном коде.
+        Kind string   // Тип литерала: "INT", "STRING", "BOOL" и т.д.
+        Val  string   // Строковое представление значения.
+}
+
+// Pos возвращает позицию литерала.
+func (l *Literal) Pos() Position <span class="cov0" title="0">{ return l.pos }</span>
+
+// String возвращает строковое представление литерала.
+func (l *Literal) String() string <span class="cov8" title="1">{ return fmt.Sprintf("Literal{%s: %s}", l.Kind, l.Val) }</span>
+
+// exprString реализует интерфейс Expr.
+func (l *Literal) exprString() string <span class="cov0" title="0">{ return l.String() }</span>
+
+// NewLiteral создаёт новый узел Literal.
+func NewLiteral(pos Position, kind string, val string) *Literal <span class="cov8" title="1">{
+        return &amp;Literal{pos: pos, Kind: kind, Val: val}
+}</span>
+
+// CallExpr представляет вызов функции или метода.
+// Соответствует грамматике: CallExpr ::= Expr "(" [Expr ("," Expr)*] ")"
+type CallExpr struct {
+        pos  Position // Позиция имени вызываемой функции.
+        Func Expr     // Вызываемая функция (обычно идентификатор или путь).
+        Args []Expr   // Аргументы вызова.
+}
+
+// Pos возвращает позицию вызова функции.
+func (ce *CallExpr) Pos() Position <span class="cov0" title="0">{ return ce.pos }</span>
+
+// String возвращает строковое представление вызова функции.
+func (ce *CallExpr) String() string <span class="cov8" title="1">{ return fmt.Sprintf("CallExpr{Args: %d}", len(ce.Args)) }</span>
+
+// exprString реализует интерфейс Expr.
+func (ce *CallExpr) exprString() string <span class="cov0" title="0">{ return ce.String() }</span>
+
+// NewCallExpr создаёт новый узел CallExpr.
+func NewCallExpr(pos Position, fn Expr, args []Expr) *CallExpr <span class="cov8" title="1">{
+        return &amp;CallExpr{pos: pos, Func: fn, Args: args}
+}</span>
+
+// Type — интерфейс для всех типов в языке.
+type Type interface {
+        Node
+        // typeString возвращает строковое представление типа (для внутреннего использования).
+        typeString() string
+}
+
+// PathType представляет тип, заданный именем (например, `i32`, `String`, `MyStruct`).
+type PathType struct {
+        pos  Position // Позиция имени типа.
+        Path string   // Полное имя типа (в упрощённом виде — строка).
+}
+
+// Pos возвращает позицию типа.
+func (pt *PathType) Pos() Position <span class="cov0" title="0">{ return pt.pos }</span>
+
+// String возвращает строковое представление типа.
+func (pt *PathType) String() string <span class="cov8" title="1">{ return fmt.Sprintf("Type{%s}", pt.Path) }</span>
+
+// typeString реализует интерфейс Type.
+func (pt *PathType) typeString() string <span class="cov0" title="0">{ return pt.String() }</span>
+
+// NewPathType создаёт новый узел PathType.
+func NewPathType(pos Position, path string) *PathType <span class="cov8" title="1">{
+        return &amp;PathType{pos: pos, Path: path}
+}</span>
+
+// Param представляет параметр функции.
+// Соответствует грамматике: Param ::= IDENTIFIER ":" Type
+// В текущей реализации шаблон (Pattern) упрощён до идентификатора.
+type Param struct {
+        pos  Position // Позиция имени параметра.
+        Name string   // Имя параметра.
+        Type Type     // Тип параметра.
+}
+
+// Pos возвращает позицию параметра.
+func (p *Param) Pos() Position <span class="cov0" title="0">{ return p.pos }</span>
+
+// String возвращает строковое представление параметра.
+func (p *Param) String() string <span class="cov8" title="1">{ return fmt.Sprintf("Param{Name: %s}", p.Name) }</span>
+
+// NewParam создаёт новый узел Param.
+func NewParam(pos Position, name string, typ Type) *Param <span class="cov8" title="1">{
+        return &amp;Param{pos: pos, Name: name, Type: typ}
+}</span>
+
+// BlockExpr оборачивает Block, позволяя использовать его как выражение (например, в последнем выражении функции).
+type BlockExpr struct {
+        pos   Position // Позиция блока.
+        Block *Block   // Обёрнутый блок.
+}
+
+// Pos возвращает позицию блочного выражения.
+func (be *BlockExpr) Pos() Position <span class="cov0" title="0">{ return be.pos }</span>
+
+// String возвращает строковое представление блочного выражения.
+func (be *BlockExpr) String() string <span class="cov0" title="0">{ return "BlockExpr" }</span>
+
+// exprString реализует интерфейс Expr.
+func (be *BlockExpr) exprString() string <span class="cov0" title="0">{ return be.String() }</span>
+
+// NewBlockExpr создаёт новый узел BlockExpr.
+func NewBlockExpr(pos Position, block *Block) *BlockExpr <span class="cov8" title="1">{
+        return &amp;BlockExpr{pos: pos, Block: block}
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">// internal/ast/printer.go
+
+// Package ast предоставляет функциональность для печати абстрактного синтаксического дерева (AST)
+// в человекочитаемом, отформатированном виде.
+package ast
+
+import (
+        "strings"
+)
+
+// PrettyPrint возвращает красиво отформатированное строковое представление узла AST.
+// Результат включает отступы для вложенных узлов, что облегчает визуальный анализ структуры дерева.
+// Используется в основном для отладки и логирования.
+func PrettyPrint(n Node) string <span class="cov8" title="1">{
+        var sb strings.Builder
+        prettyPrintNode(&amp;sb, n, 0)
+        return sb.String()
+}</span>
+
+// prettyPrintNode — рекурсивная вспомогательная функция для печати узла AST с заданным уровнем отступа.
+// sb — буфер для накопления результата.
+// n — узел AST, который нужно напечатать (может быть nil).
+// indent — текущий уровень вложенности (каждый уровень соответствует двум пробелам).
+//
+// Функция сначала выводит строковое представление узла (через его метод String()),
+// а затем рекурсивно обходит все его дочерние узлы (если они есть), увеличивая уровень отступа.
+// Узлы, не имеющие потомков (например, Literal, PathType), не требуют дополнительной обработки.
+func prettyPrintNode(sb *strings.Builder, n Node, indent int) <span class="cov8" title="1">{
+        if n == nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+        <span class="cov8" title="1">prefix := strings.Repeat("  ", indent)
+        sb.WriteString(prefix)
+        sb.WriteString(n.String())
+        sb.WriteString("\n")
+
+        // Рекурсивный обход дочерних узлов в зависимости от типа текущего узла.
+        switch node := n.(type) </span>{
+        case *Crate:<span class="cov8" title="1">
+                // Печатаем все элементы верхнего уровня (функции, структуры и т.д.).
+                for _, item := range node.Items </span><span class="cov8" title="1">{
+                        prettyPrintNode(sb, item, indent+1)
+                }</span>
+        case *Function:<span class="cov8" title="1">
+                // Печатаем параметры функции и её тело.
+                for _, param := range node.Params </span><span class="cov8" title="1">{
+                        prettyPrintNode(sb, &amp;param, indent+1)
+                }</span>
+                <span class="cov8" title="1">prettyPrintNode(sb, node.Body, indent+1)</span>
+        case *Struct:<span class="cov8" title="1">
+                // Печатаем поля структуры.
+                for _, field := range node.Fields </span><span class="cov8" title="1">{
+                        prettyPrintNode(sb, &amp;field, indent+1)
+                }</span>
+        case *Block:<span class="cov8" title="1">
+                // Печатаем все операторы внутри блока.
+                for _, stmt := range node.Stmts </span><span class="cov8" title="1">{
+                        prettyPrintNode(sb, stmt, indent+1)
+                }</span>
+        case *LetStmt:<span class="cov8" title="1">
+                // Печатаем тип переменной и выражение инициализации.
+                prettyPrintNode(sb, node.Type, indent+1)
+                prettyPrintNode(sb, node.Init, indent+1)</span>
+        case *ExprStmt:<span class="cov8" title="1">
+                // Печатаем само выражение.
+                prettyPrintNode(sb, node.Expr, indent+1)</span>
+        case *BinaryExpr:<span class="cov8" title="1">
+                // Печатаем левый и правый операнды.
+                prettyPrintNode(sb, node.Left, indent+1)
+                prettyPrintNode(sb, node.Right, indent+1)</span>
+        case *UnaryExpr:<span class="cov8" title="1">
+                // Печатаем операнд унарного выражения.
+                prettyPrintNode(sb, node.Expr, indent+1)</span>
+        case *CallExpr:<span class="cov8" title="1">
+                // Печатаем вызываемую функцию и аргументы.
+                prettyPrintNode(sb, node.Func, indent+1)
+                for _, arg := range node.Args </span><span class="cov8" title="1">{
+                        prettyPrintNode(sb, arg, indent+1)
+                }</span>
+        case *BlockExpr:<span class="cov0" title="0">
+                // Печатаем внутренний блок.
+                prettyPrintNode(sb, node.Block, indent+1)</span>
+                // Листовые узлы (например, Literal, PathType, Param, Field) не имеют дочерних узлов,
+                // поэтому для них отдельные case не требуются.
+        }
+}
+
+// func prettyPrintItem(sb *strings.Builder, i Item, indent int) {
+//         prettyPrintNode(sb, i, indent)
+//         // Рекурсия для детей, если нужно
+// }
+
+// func prettyPrintStmt(sb *strings.Builder, s Stmt, indent int) {
+//         prettyPrintNode(sb, s, indent)
+// }
+
+// func prettyPrintExpr(sb *strings.Builder, e Expr, indent int) {
+//         prettyPrintNode(sb, e, indent)
+// }
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">// Пакет lexer: основная логика лексирования, реализует Lex(input) ([]token.Token, error).
+package lexer
+
+import (
+        "fmt"
+        "unicode"
+
+        "github.com/semetekare/rust2go/internal/token"
+)
+
+// lexer — приватная структура, содержащая состояние сканирования.
+// Внутренне хранит input как []rune для корректной работы с Unicode.
+type Lexer struct {
+        input         string          // исходный текст (как строка)
+        runes         []rune          // исходный текст как срез рун (Unicode-aware)
+        length        int             // длина s runes
+        pos           int             // текущий индекс рун
+        readPos       int             // индекс следующей руны
+        ch            rune            // текущая просматриваемая руна
+        line          int             // текущая строка (1-based)
+        col           int             // текущая колонка (1-based)
+        tokens        []token.Token   // накопленные токены
+        err           error           // первая возникшая ошибка
+        keywords      map[string]bool // таблица ключевых слов
+        operators     map[string]bool // таблица операторов (включая многосимвольные)
+        punctuations  map[string]bool // таблица пунктуации (включая многосимвольные)
+        builtinMacros map[string]bool // таблица встроенных макросов
+}
+
+// NewLexer создаёт и инициализирует лексер.
+func NewLexer() *Lexer <span class="cov8" title="1">{
+        return &amp;Lexer{
+                line:          1,
+                col:           0,
+                keywords:      Keywords,
+                operators:     Operators,
+                punctuations:  Punctuations,
+                builtinMacros: BuiltinMacros,
+        }
+}</span>
+
+// Lex запускает разбор входной строки и возвращает слайс токенов.
+// Основная точка входа для использования лексера.
+func (l *Lexer) Lex(input string) ([]token.Token, error) <span class="cov8" title="1">{
+        l.input = input
+        l.runes = []rune(input) // переводим в runes, чтобы корректно работать с UTF-8
+        l.length = len(l.runes)
+        l.pos = 0
+        l.readPos = 0
+        l.tokens = nil
+        l.err = nil
+        l.ch = 0
+        l.readChar()
+
+        for l.ch != 0 </span><span class="cov8" title="1">{
+                l.nextToken()
+                if l.err != nil </span><span class="cov0" title="0">{
+                        return nil, l.err
+                }</span>
+        }
+
+        // Добавляем EOF токен в конец
+        <span class="cov8" title="1">l.tokens = append(l.tokens, token.Token{Type: token.EOF, Line: l.line, Col: l.col})
+        return l.tokens, nil</span>
+}
+
+// readChar читает следующую руну в поток и обновляет позицию, строку и колонку.
+// Реализация работает с индексами рун, чтобы не ломать многобайтовые символы.
+func (l *Lexer) readChar() <span class="cov8" title="1">{
+        if l.readPos &gt;= l.length </span><span class="cov8" title="1">{
+                l.ch = 0
+        }</span> else<span class="cov8" title="1"> {
+                l.ch = l.runes[l.readPos]
+        }</span>
+        <span class="cov8" title="1">l.pos = l.readPos
+        l.readPos++
+        if l.ch == '\n' </span><span class="cov8" title="1">{
+                l.line++
+                l.col = 0
+        }</span> else<span class="cov8" title="1"> {
+                l.col++
+        }</span>
+}
+
+// peek возвращает следующую руну без продвижения позиции.
+// Используется для принятия решений о многосимвольных операторах и префиксах.
+func (l *Lexer) peek() rune <span class="cov8" title="1">{
+        if l.readPos &gt;= l.length </span><span class="cov8" title="1">{
+                return 0
+        }</span>
+        <span class="cov8" title="1">return l.runes[l.readPos]</span>
+}
+
+// peekN возвращает n-ую руну вперед (n &gt;= 1), безопасно при выходе за пределы.
+func (l *Lexer) peekN(n int) rune <span class="cov8" title="1">{
+        idx := l.readPos + n - 1
+        if idx &gt;= l.length || idx &lt; 0 </span><span class="cov8" title="1">{
+                return 0
+        }</span>
+        <span class="cov8" title="1">return l.runes[idx]</span>
+}
+
+// skipWhitespace пропускает все пробельные символы (включая новые строки).
+func (l *Lexer) skipWhitespace() <span class="cov8" title="1">{
+        for unicode.IsSpace(l.ch) </span><span class="cov8" title="1">{
+                l.readChar()
+        }</span>
+}
+
+// skipComment пропускает однострочные (//) и блочные (/* ... */) комментарии.
+// Блочные комментарии поддерживают вложенность.
+func (l *Lexer) skipComment() <span class="cov8" title="1">{
+        if l.ch == '/' &amp;&amp; l.peek() == '/' </span><span class="cov8" title="1">{
+                for l.ch != '\n' &amp;&amp; l.ch != 0 </span><span class="cov8" title="1">{
+                        l.readChar()
+                }</span>
+        } else<span class="cov8" title="1"> if l.ch == '/' &amp;&amp; l.peek() == '*' </span><span class="cov8" title="1">{
+                l.readChar()
+                l.readChar()
+                nest := 1
+                for l.ch != 0 &amp;&amp; nest &gt; 0 </span><span class="cov8" title="1">{
+                        if l.ch == '/' &amp;&amp; l.peek() == '*' </span><span class="cov8" title="1">{
+                                l.readChar()
+                                l.readChar()
+                                nest++
+                        }</span> else<span class="cov8" title="1"> if l.ch == '*' &amp;&amp; l.peek() == '/' </span><span class="cov8" title="1">{
+                                l.readChar()
+                                l.readChar()
+                                nest--
+                        }</span> else<span class="cov8" title="1"> {
+                                l.readChar()
+                        }</span>
+                }
+        }
+}
+
+// isDigitInBase проверяет, является ли руна допустимой цифрой для заданного основания.
+// Учитывает буквы a-f/A-F для base==16.
+func isDigitInBase(ch rune, base int) bool <span class="cov8" title="1">{
+        if unicode.IsDigit(ch) </span><span class="cov8" title="1">{
+                d := int(ch - '0')
+                return d &lt; base
+        }</span>
+        <span class="cov8" title="1">if base == 16 </span><span class="cov8" title="1">{
+                if ch &gt;= 'a' &amp;&amp; ch &lt;= 'f' </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+                <span class="cov8" title="1">if ch &gt;= 'A' &amp;&amp; ch &lt;= 'F' </span><span class="cov8" title="1">{
+                        return true
+                }</span>
+        }
+        <span class="cov8" title="1">return false</span>
+}
+
+// readIdentifier читает последовательность символов, образующих идентификатор.
+func (l *Lexer) readIdentifier() string <span class="cov8" title="1">{
+        start := l.pos
+        for unicode.IsLetter(l.ch) || unicode.IsDigit(l.ch) || l.ch == '_' </span><span class="cov8" title="1">{
+                l.readChar()
+        }</span>
+        <span class="cov8" title="1">if l.ch == '!' </span><span class="cov8" title="1">{
+                l.readChar()
+        }</span>
+        <span class="cov8" title="1">return string(l.runes[start:l.pos])</span>
+}
+
+// readLifetimeOrChar различает lifetime ('a) и char ('a').
+// Логика: если после имени идёт закрывающий апостроф — это символьный литерал.
+func (l *Lexer) readLifetimeOrChar() (string, token.TokenType, string) <span class="cov8" title="1">{
+        // at '\''
+        // if pattern is '\'x\'' -&gt; char (single rune possibly escaped)
+        // else it's lifetime: '\'name'
+        start := l.pos
+        l.readChar() // skip '
+        // собираем буквы/цифры/подчёркивания (имя lifetime)
+        for unicode.IsLetter(l.ch) || unicode.IsDigit(l.ch) || l.ch == '_' </span><span class="cov8" title="1">{
+                l.readChar()
+        }</span>
+        // если следующий символ — апостроф, то это формат 'x' -&gt; CHAR
+        <span class="cov8" title="1">if l.ch == '\'' </span><span class="cov8" title="1">{
+                l.readChar()
+                return string(l.runes[start:l.pos]), token.TYPE, "CHAR"
+        }</span>
+        // иначе — lifetime (без завершающего апострофа)
+        <span class="cov8" title="1">return string(l.runes[start:l.pos]), token.LIFETIME, ""</span>
+}
+
+// readNumber читает целые и дробные литералы, учитывает префиксы 0b/0o/0x,
+// экспоненты, подчёркивания для разделения разрядов и суффиксы типов (u32, f64 и т.д.).
+func (l *Lexer) readNumber() (string, string) <span class="cov8" title="1">{
+        // возвращаем (literal, subtype) где subtype = "INT" или "FLOAT"
+        start := l.pos
+        base := 10
+
+        if l.ch == '0' </span><span class="cov8" title="1">{
+                if l.peek() == 'b' || l.peek() == 'o' || l.peek() == 'x' </span><span class="cov8" title="1">{
+                        l.readChar()
+                        switch l.ch </span>{
+                        case 'b':<span class="cov8" title="1">
+                                base = 2
+                                l.readChar()</span>
+                        case 'o':<span class="cov8" title="1">
+                                base = 8
+                                l.readChar()</span>
+                        case 'x':<span class="cov8" title="1">
+                                base = 16
+                                l.readChar()</span>
+                        default:<span class="cov0" title="0">
+                                base = 10</span>
+                        }
+                }
+        }
+
+        <span class="cov8" title="1">for isDigitInBase(l.ch, base) || l.ch == '_' </span><span class="cov8" title="1">{
+                l.readChar()
+        }</span>
+
+        <span class="cov8" title="1">isFloat := false
+        if l.ch == '.' &amp;&amp; base == 10 &amp;&amp; isDigitInBase(l.peek(), 10) </span><span class="cov8" title="1">{
+                isFloat = true
+                l.readChar()
+                for unicode.IsDigit(l.ch) || l.ch == '_' </span><span class="cov8" title="1">{
+                        l.readChar()
+                }</span>
+        }
+
+        <span class="cov8" title="1">if (l.ch == 'e' || l.ch == 'E') &amp;&amp; base == 10 </span><span class="cov8" title="1">{
+                isFloat = true
+                l.readChar()
+                if l.ch == '+' || l.ch == '-' </span><span class="cov8" title="1">{
+                        l.readChar()
+                }</span>
+                <span class="cov8" title="1">for unicode.IsDigit(l.ch) || l.ch == '_' </span><span class="cov8" title="1">{
+                        l.readChar()
+                }</span>
+        }
+
+        // суффикс
+        <span class="cov8" title="1">for unicode.IsLetter(l.ch) || unicode.IsDigit(l.ch) </span><span class="cov8" title="1">{
+                l.readChar()
+        }</span>
+
+        <span class="cov8" title="1">lit := string(l.runes[start:l.pos])
+        if isFloat </span><span class="cov8" title="1">{
+                return lit, "FLOAT"
+        }</span>
+        <span class="cov8" title="1">return lit, "INT"</span>
+}
+
+func (l *Lexer) readString(prefix string) (string, string) <span class="cov8" title="1">{
+        // возвращаем (literal, subtype) где subtype == "STRING" (или "CHAR" для byte char handled separately)
+        start := l.pos - len([]rune(prefix))
+        hashCount := 0
+
+        if prefix == "r" || prefix == "br" </span><span class="cov8" title="1">{
+                for l.ch == '#' </span><span class="cov8" title="1">{
+                        hashCount++
+                        l.readChar()
+                }</span>
+                <span class="cov8" title="1">if l.ch != '"' </span><span class="cov0" title="0">{
+                        l.err = fmt.Errorf("invalid raw string literal at line %d, col %d", l.line, l.col)
+                        return "", ""
+                }</span>
+        }
+
+        <span class="cov8" title="1">l.readChar() // Skip opening "
+
+        if prefix == "r" || prefix == "br" </span><span class="cov8" title="1">{
+                for l.ch != 0 </span><span class="cov8" title="1">{
+                        if l.ch == '"' </span><span class="cov8" title="1">{
+                                l.readChar()
+                                matched := 0
+                                for l.ch == '#' &amp;&amp; matched &lt; hashCount </span><span class="cov8" title="1">{
+                                        matched++
+                                        l.readChar()
+                                }</span>
+                                <span class="cov8" title="1">if matched == hashCount </span><span class="cov8" title="1">{
+                                        break</span>
+                                }
+                        } else<span class="cov8" title="1"> {
+                                l.readChar()
+                        }</span>
+                }
+        } else<span class="cov8" title="1"> {
+                for l.ch != '"' &amp;&amp; l.ch != 0 </span><span class="cov8" title="1">{
+                        if l.ch == '\\' </span><span class="cov8" title="1">{
+                                l.readChar() // Escape char
+                                if l.ch == '\n' || l.ch == '\r' </span><span class="cov0" title="0">{
+                                        if l.ch == '\r' &amp;&amp; l.peek() == '\n' </span><span class="cov0" title="0">{
+                                                l.readChar()
+                                        }</span>
+                                        <span class="cov0" title="0">l.readChar()
+                                        continue</span>
+                                }
+                        }
+                        <span class="cov8" title="1">l.readChar()</span>
+                }
+                <span class="cov8" title="1">if l.ch == '"' </span><span class="cov8" title="1">{
+                        l.readChar()
+                }</span> else<span class="cov0" title="0"> {
+                        l.err = fmt.Errorf("unterminated string literal at line %d, col %d", l.line, l.col)
+                }</span>
+        }
+
+        <span class="cov8" title="1">return string(l.runes[start:l.pos]), "STRING"</span>
+}
+
+// readAttr читает атрибуты Rust: #[...] и #![...]
+// Поддерживает вложенные квадратные скобки внутри атрибута.
+func (l *Lexer) readAttr() string <span class="cov8" title="1">{
+        start := l.pos
+        l.readChar() // #
+        if l.ch == '!' </span><span class="cov8" title="1">{
+                l.readChar() // Consume #!
+        }</span>
+        <span class="cov8" title="1">if l.ch != '[' </span><span class="cov0" title="0">{
+                l.err = fmt.Errorf("invalid attribute syntax: expected '[' at line %d, col %d", l.line, l.col)
+                return ""
+        }</span>
+        <span class="cov8" title="1">l.readChar() // [
+        depth := 1
+        for l.ch != 0 &amp;&amp; depth &gt; 0 </span><span class="cov8" title="1">{
+                if l.ch == '[' </span><span class="cov0" title="0">{
+                        depth++
+                }</span> else<span class="cov8" title="1"> if l.ch == ']' </span><span class="cov8" title="1">{
+                        depth--
+                }</span>
+                <span class="cov8" title="1">l.readChar()</span>
+        }
+        <span class="cov8" title="1">if depth &gt; 0 </span><span class="cov0" title="0">{
+                l.err = fmt.Errorf("unterminated attribute at line %d, col %d", l.line, l.col)
+        }</span>
+        <span class="cov8" title="1">return string(l.runes[start:l.pos])</span>
+}
+
+// readOpOrPunct читает операторы и пунктуацию, пытаясь сначала матчить
+// трёхсимвольные, затем двухсимвольные, затем односивольные последовательности.
+func (l *Lexer) readOpOrPunct() string <span class="cov8" title="1">{
+        start := l.pos
+        possibleThree := string(l.ch) + string(l.peek()) + string(l.peekN(2))
+        possibleTwo := string(l.ch) + string(l.peek())
+        if l.operators[possibleThree] || l.punctuations[possibleThree] </span><span class="cov0" title="0">{
+                l.readChar()
+                l.readChar()
+                l.readChar()
+                return string(l.runes[start:l.pos])
+        }</span> else<span class="cov8" title="1"> if l.operators[possibleTwo] || l.punctuations[possibleTwo] </span><span class="cov8" title="1">{
+                l.readChar()
+                l.readChar()
+                return string(l.runes[start:l.pos])
+        }</span>
+        <span class="cov8" title="1">l.readChar()
+        return string(l.runes[start:l.pos])</span>
+}
+
+// Вспомогательные предикаты для распознавания операторных и пунктуационных символов.
+func isOperatorChar(ch rune) bool <span class="cov0" title="0">{
+        return ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%' ||
+                ch == '=' || ch == '!' || ch == '&lt;' || ch == '&gt;' || ch == '&amp;' || ch == '|' ||
+                ch == '^' || ch == '~' || ch == '?'
+}</span>
+
+func isPunctChar(ch rune) bool <span class="cov0" title="0">{
+        return ch == '{' || ch == '}' || ch == '(' || ch == ')' || ch == '[' || ch == ']' ||
+                ch == ';' || ch == ',' || ch == ':' || ch == '.' || ch == '#' || ch == '@' || ch == '!'
+}</span>
+
+// containsDotOrExp проверяет, содержит ли строка точки или показатель экспоненты,
+// используется при классификации числа как FLOAT.
+func containsDotOrExp(s string) bool <span class="cov0" title="0">{
+        for _, c := range s </span><span class="cov0" title="0">{
+                if c == '.' || c == 'e' || c == 'E' </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+// nextToken — центральная функция, которая анализирует текущую руну и формирует токен.
+// Ведёт себя итеративно: пропускает пробелы/комментарии, затем вызывает соответствующие читатели.
+func (l *Lexer) nextToken() <span class="cov8" title="1">{
+        l.skipWhitespace()
+
+        if l.ch == '/' &amp;&amp; (l.peek() == '/' || l.peek() == '*') </span><span class="cov8" title="1">{
+                l.skipComment()
+                return
+        }</span>
+
+        <span class="cov8" title="1">var tok token.Token
+        tok.Line = l.line
+        tok.Col = l.col
+
+        switch </span>{
+        case l.ch == 0:<span class="cov8" title="1">
+                return</span>
+        case l.ch == '\'' &amp;&amp; (unicode.IsLetter(l.peek()) || l.peek() == '_'):<span class="cov8" title="1">
+                // need to distinguish lifetime vs char: check next-next char for closing '
+                // use helper that returns subtype for CHAR
+                lit, ttype, subtype := l.readLifetimeOrChar()
+                tok.Literal = lit
+                if ttype == token.TYPE </span><span class="cov8" title="1">{
+                        tok.Type = token.TYPE
+                        tok.Subtype = subtype // "CHAR"
+                }</span> else<span class="cov8" title="1"> {
+                        tok.Type = token.LIFETIME
+                }</span>
+        case unicode.IsLetter(l.ch) || l.ch == '_':<span class="cov8" title="1">
+                prefix := l.readIdentifier()
+                switch </span>{
+                case prefix == "r" &amp;&amp; (l.ch == '"' || l.ch == '#'):<span class="cov8" title="1">
+                        lit, subtype := l.readString("r")
+                        tok.Literal = lit
+                        tok.Type = token.TYPE
+                        tok.Subtype = subtype</span> // "STRING"
+                case prefix == "br" &amp;&amp; (l.ch == '"' || l.ch == '#'):<span class="cov0" title="0">
+                        lit, subtype := l.readString("br")
+                        tok.Literal = lit
+                        tok.Type = token.TYPE
+                        tok.Subtype = subtype</span>
+                case prefix == "b" &amp;&amp; l.ch == '"':<span class="cov8" title="1">
+                        lit, subtype := l.readString("b")
+                        tok.Literal = lit
+                        tok.Type = token.TYPE
+                        tok.Subtype = subtype</span>
+                case prefix == "b" &amp;&amp; l.ch == '\'':<span class="cov0" title="0">
+                        // byte char literal
+                        lit, _ := l.readString("b")
+                        tok.Literal = lit
+                        tok.Type = token.TYPE
+                        tok.Subtype = "CHAR"</span>
+                default:<span class="cov8" title="1">
+                        tok.Literal = prefix
+                        if l.keywords[tok.Literal] </span><span class="cov8" title="1">{
+                                tok.Type = token.KEYWORD
+                        }</span> else<span class="cov8" title="1"> if l.builtinMacros[tok.Literal] </span><span class="cov8" title="1">{
+                                // Встроенные макросы трактуются как IDENT с особым Subtype
+                                tok.Type = token.IDENT
+                                tok.Subtype = "MACRO"
+                        }</span> else<span class="cov8" title="1"> {
+                                tok.Type = token.IDENT
+                        }</span>
+                }
+        case unicode.IsDigit(l.ch):<span class="cov8" title="1">
+                lit, subtype := l.readNumber()
+                tok.Literal = lit
+                tok.Type = token.TYPE
+                tok.Subtype = subtype</span> // "INT" or "FLOAT"
+        case l.ch == '"':<span class="cov8" title="1">
+                lit, subtype := l.readString("")
+                tok.Literal = lit
+                tok.Type = token.STRING
+                tok.Subtype = subtype</span> // "STRING"
+        case l.ch == '\'':<span class="cov0" title="0">
+                lit, ttype, subtype := l.readLifetimeOrChar()
+                tok.Literal = lit
+                if ttype == token.TYPE </span><span class="cov0" title="0">{
+                        tok.Type = token.TYPE
+                        tok.Subtype = subtype
+                }</span> else<span class="cov0" title="0"> {
+                        tok.Type = token.LIFETIME
+                }</span>
+        case l.ch == '#':<span class="cov8" title="1">
+                tok.Literal = l.readAttr()
+                tok.Type = token.ATTRIBUTE</span>
+        default:<span class="cov8" title="1">
+                // операторы и пунктуация
+                lit := l.readOpOrPunct()
+                // отдельный случай: если это точка с запятой — TERMINATOR
+                if lit == ";" </span><span class="cov8" title="1">{
+                        tok.Type = token.TERMINATOR
+                        tok.Literal = lit
+                }</span> else<span class="cov8" title="1"> {
+                        tok.Literal = lit
+                        if l.operators[tok.Literal] </span><span class="cov8" title="1">{
+                                tok.Type = token.OPERATOR
+                        }</span> else<span class="cov8" title="1"> if l.punctuations[tok.Literal] </span><span class="cov8" title="1">{
+                                tok.Type = token.PUNCT
+                        }</span> else<span class="cov0" title="0"> {
+                                tok.Type = token.ILLEGAL
+                        }</span>
+                }
+        }
+
+        <span class="cov8" title="1">if l.err == nil </span><span class="cov8" title="1">{
+                l.tokens = append(l.tokens, tok)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">// Пакет lexer: низкоуровневый сканер (работа с runes и позициями).
+package lexer
+
+// Scanner — упрощённый ридер по рун-строке. Предоставляет Peek/PeekN и позицию.
+type Scanner struct {
+        runes   []rune
+        length  int
+        pos     int // индекс текущей руны
+        readPos int // индекс следующей руны
+        ch      rune
+        Line    int
+        Col     int
+}
+
+// NewScanner создаёт новый сканер и сразу читает первую руну.
+func NewScanner(input string) *Scanner <span class="cov0" title="0">{
+        r := []rune(input)
+        s := &amp;Scanner{runes: r, length: len(r), pos: 0, readPos: 0, Line: 1, Col: 0}
+        s.readChar()
+        return s
+}</span>
+
+// readChar продвигает сканер на следующую руну.
+func (s *Scanner) readChar() <span class="cov0" title="0">{
+        if s.readPos &gt;= s.length </span><span class="cov0" title="0">{
+                s.ch = 0
+        }</span> else<span class="cov0" title="0"> {
+                s.ch = s.runes[s.readPos]
+        }</span>
+        <span class="cov0" title="0">s.pos = s.readPos
+        s.readPos++
+        if s.ch == '\n' </span><span class="cov0" title="0">{
+                s.Line++
+                s.Col = 0
+        }</span> else<span class="cov0" title="0"> {
+                s.Col++
+        }</span>
+}
+
+// Ch возвращает текущую руну.
+func (s *Scanner) Ch() rune <span class="cov0" title="0">{ return s.ch }</span>
+
+// Peek возвращает следующую руну без продвижения.
+func (s *Scanner) Peek() rune <span class="cov0" title="0">{
+        if s.readPos &gt;= s.length </span><span class="cov0" title="0">{
+                return 0
+        }</span>
+        <span class="cov0" title="0">return s.runes[s.readPos]</span>
+}
+
+// PeekN возвращает n-ую руну вперёд (n&gt;=1), безопасно если выходит за пределы.
+func (s *Scanner) PeekN(n int) rune <span class="cov0" title="0">{
+        idx := s.readPos + n - 1
+        if idx &gt;= s.length || idx &lt; 0 </span><span class="cov0" title="0">{
+                return 0
+        }</span>
+        <span class="cov0" title="0">return s.runes[idx]</span>
+}
+
+// Next продвигает сканер и возвращает новую текущую руну.
+func (s *Scanner) Next() rune <span class="cov0" title="0">{ s.readChar(); return s.ch }</span>
+
+// Pos возвращает текущие координаты (line, col).
+func (s *Scanner) Pos() (int, int) <span class="cov0" title="0">{ return s.Line, s.Col }</span>
+
+// IsEOF возвращает true, если достигнут конец.
+func (s *Scanner) IsEOF() bool <span class="cov0" title="0">{ return s.ch == 0 }</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">// internal/parser/grammar.go
+
+// Package parser реализует рекурсивный спуск для парсинга входного потока токенов
+// в абстрактное синтаксическое дерево (AST), соответствующее Rust-подобному языку.
+package parser
+
+import (
+        "fmt"
+
+        "github.com/semetekare/rust2go/internal/ast"
+        "github.com/semetekare/rust2go/internal/token"
+)
+
+// leftAssoc — флаг, указывающий, что операторы левоассоциативны.
+// Используется при построении бинарных выражений.
+const leftAssoc = true
+
+// ParseCrate парсит корневой узел AST — единицу компиляции (crate).
+// Грамматика: Crate ::= InnerAttribute* Item*
+// Метод последовательно парсит все элементы верхнего уровня до конца входного потока.
+// В случае ошибки в одном из элементов пытается восстановиться, пропуская токены,
+// чтобы избежать зацикливания.
+func (p *Parser) ParseCrate() *ast.Crate <span class="cov8" title="1">{
+        pos := p.stream.Pos()
+        items := []ast.Item{}
+        for !p.stream.IsEOF() </span><span class="cov8" title="1">{
+                item := p.ParseItem()
+                if item != nil </span><span class="cov8" title="1">{
+                        items = append(items, item)
+                }</span> else<span class="cov0" title="0"> {
+                        // Если ParseItem вернул nil, значит была ошибка.
+                        // Пропускаем токен, чтобы избежать бесконечного цикла, если error recovery не справится.
+                        if p.stream.IsEOF() </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+                        <span class="cov0" title="0">p.stream.Next()</span>
+                }
+        }
+        <span class="cov8" title="1">return ast.NewCrate(pos, items)</span>
+}
+
+// ParseItem парсит элемент верхнего уровня (item): функцию, структуру и т.д.
+// Грамматика: Item ::= OuterAttribute* (Function | Struct | ... )?
+// Поддерживает пропуск атрибутов (например, #[derive(...)]).
+// На данный момент реализованы только "fn" и "struct".
+// В случае неизвестного элемента возвращает nil и регистрирует ошибку.
+func (p *Parser) ParseItem() ast.Item <span class="cov8" title="1">{
+        // Пропускаем все атрибуты перед элементом
+        for p.stream.Peek().Type == token.ATTRIBUTE </span><span class="cov0" title="0">{
+                p.stream.Next() // пропускаем атрибут
+        }</span>
+        <span class="cov8" title="1">tok := p.stream.Peek()
+        pos := tok.Pos()
+        if tok.Type == token.KEYWORD </span><span class="cov8" title="1">{
+                switch tok.Literal </span>{
+                case "fn":<span class="cov8" title="1">
+                        p.stream.Next() // потребляем "fn"
+                        nameTok := p.expect(token.IDENT, "", "identifier after fn")
+                        name := nameTok.Literal
+                        // Парсим параметры функции
+                        params := []ast.Param{}
+                        p.expect(token.PUNCT, "(", "(")
+                        // Обрабатываем пустой список параметров
+                        for !p.stream.IsEOF() &amp;&amp; !(p.stream.Peek().Type == token.PUNCT &amp;&amp; p.stream.Peek().Literal == ")") </span><span class="cov8" title="1">{
+                                paramNameTok := p.expect(token.IDENT, "", "param name")
+                                paramName := paramNameTok.Literal
+                                p.expect(token.PUNCT, ":", ":")
+                                paramType := p.ParseType()
+                                params = append(params, *ast.NewParam(paramNameTok.Pos(), paramName, paramType))
+                                if p.stream.Peek().Literal == "," </span><span class="cov8" title="1">{
+                                        p.stream.Next()
+                                        continue</span>
+                                }
+                                <span class="cov8" title="1">break</span>
+                        }
+                        <span class="cov8" title="1">p.expect(token.PUNCT, ")", ")")
+                        // Необязательный возвращаемый тип
+                        var retType ast.Type
+                        if p.stream.Peek().Literal == "-&gt;" </span><span class="cov8" title="1">{
+                                p.stream.Next()
+                                retType = p.ParseType()
+                        }</span> else<span class="cov8" title="1"> {
+                                retType = ast.NewPathType(pos, "()") // тип по умолчанию — unit
+                        }</span>
+                        <span class="cov8" title="1">body := p.ParseBlock()
+                        return ast.NewFunction(pos, name, params, retType, body)</span>
+                case "struct":<span class="cov8" title="1">
+                        p.stream.Next()
+                        nameTok := p.expect(token.IDENT, "", "struct name")
+                        name := nameTok.Literal
+                        p.expect(token.PUNCT, "{", "{")
+                        fields := []ast.Field{}
+                        for !p.stream.IsEOF() &amp;&amp; !(p.stream.Peek().Type == token.PUNCT &amp;&amp; p.stream.Peek().Literal == "}") </span><span class="cov8" title="1">{
+                                fieldNameTok := p.expect(token.IDENT, "", "field name")
+                                p.expect(token.PUNCT, ":", ":")
+                                fieldType := p.ParseType()
+                                fields = append(fields, *ast.NewField(fieldNameTok.Pos(), fieldNameTok.Literal, fieldType))
+                                if p.stream.Peek().Literal == "," </span><span class="cov8" title="1">{
+                                        p.stream.Next()
+                                        continue</span>
+                                }
+                                <span class="cov0" title="0">break</span>
+                        }
+                        <span class="cov8" title="1">p.expect(token.PUNCT, "}", "}")
+                        return ast.NewStruct(pos, name, fields)</span>
+                }
+        }
+        // Не распознан элемент верхнего уровня
+        <span class="cov0" title="0">p.error("expected item (fn, struct, etc.)", tok)
+        return nil</span>
+}
+
+// ParseExpr парсит выражение с учётом приоритетов операторов.
+// Использует рекурсивный спуск и вспомогательный метод parseBinary для обработки
+// бинарных операций. Поддерживаемые операторы: сравнения, арифметика, логические.
+func (p *Parser) ParseExpr() ast.Expr <span class="cov8" title="1">{
+        return p.parseBinary(p.parseUnary, []string{"==", "!=", "&lt;", "&gt;", "+", "-", "*", "/", "%", "&amp;&amp;", "||"}, leftAssoc)
+}</span>
+
+// parseBinary — обобщённый метод для парсинга бинарных выражений.
+// Принимает:
+//   - nextParser: функцию для парсинга подвыражения более высокого приоритета,
+//   - ops: список операторов текущего приоритета,
+//   - assoc: ассоциативность (в текущей реализации всегда левая).
+//
+// Возвращает построенное бинарное выражение или nil в случае ошибки.
+func (p *Parser) parseBinary(nextParser func() ast.Expr, ops []string, assoc bool) ast.Expr <span class="cov8" title="1">{
+        expr := nextParser()
+        for </span><span class="cov8" title="1">{
+                if expr == nil </span><span class="cov8" title="1">{
+                        return nil
+                }</span>
+                <span class="cov8" title="1">opTok := p.stream.Peek()
+                if !(opTok.Type == token.OPERATOR || opTok.Type == token.PUNCT) </span><span class="cov8" title="1">{
+                        break</span>
+                }
+                <span class="cov8" title="1">op := opTok.Literal
+                found := false
+                for _, o := range ops </span><span class="cov8" title="1">{
+                        if op == o </span><span class="cov8" title="1">{
+                                found = true
+                                break</span>
+                        }
+                }
+                <span class="cov8" title="1">if !found </span><span class="cov8" title="1">{
+                        break</span>
+                }
+                <span class="cov8" title="1">p.stream.Next()
+                right := nextParser()
+                if right == nil </span><span class="cov0" title="0">{
+                        p.error("expected expression after operator", p.stream.Peek())
+                        return nil
+                }</span>
+                <span class="cov8" title="1">expr = ast.NewBinaryExpr(expr.Pos(), expr, op, right)</span>
+        }
+        <span class="cov8" title="1">return expr</span>
+}
+
+// parseUnary парсит унарные выражения: `-x`, `!flag`, `~bits`.
+// Если унарный оператор отсутствует, делегирует парсинг primary-выражениям.
+func (p *Parser) parseUnary() ast.Expr <span class="cov8" title="1">{
+        tok := p.stream.Peek()
+        if tok.Type == token.OPERATOR &amp;&amp; (tok.Literal == "-" || tok.Literal == "!" || tok.Literal == "~") </span><span class="cov0" title="0">{
+                p.stream.Next()
+                primary := p.parsePrimary()
+                if primary == nil </span><span class="cov0" title="0">{
+                        return nil
+                }</span>
+                <span class="cov0" title="0">return ast.NewUnaryExpr(tok.Pos(), tok.Literal, primary)</span>
+        }
+        <span class="cov8" title="1">return p.parsePrimary()</span>
+}
+
+// parsePrimary парсит первичные (атомарные) выражения:
+// литералы (числа, строки, булевы), идентификаторы, вызовы функций, блоки и скобочные выражения.
+// Поддерживает вызовы вида `foo()` и обработку макросов (например, `println!`), хотя макросы
+// пока не обрабатываются отдельно — они трактуются как обычные вызовы.
+// В случае ошибки потребляет проблемный токен, чтобы избежать зацикливания.
+func (p *Parser) parsePrimary() ast.Expr <span class="cov8" title="1">{
+        tok := p.stream.Peek()
+        pos := tok.Pos()
+        switch tok.Type </span>{
+        case token.TYPE:<span class="cov8" title="1"> // Для числовых литералов с подтипом (например, INT, FLOAT)
+                p.stream.Next()
+                return ast.NewLiteral(pos, tok.Subtype, tok.Literal)</span>
+        case token.CHAR:<span class="cov0" title="0">
+                p.stream.Next()
+                return ast.NewLiteral(pos, "CHAR", tok.Literal)</span>
+        case token.INT, token.FLOAT:<span class="cov0" title="0">
+                p.stream.Next()
+                return ast.NewLiteral(pos, tok.Type.String(), tok.Literal)</span>
+        case token.STRING:<span class="cov8" title="1">
+                p.stream.Next()
+                return ast.NewLiteral(pos, "STRING", tok.Literal)</span>
+        case token.KEYWORD:<span class="cov8" title="1">
+                if tok.Literal == "true" || tok.Literal == "false" </span><span class="cov8" title="1">{
+                        p.stream.Next()
+                        return ast.NewLiteral(pos, "BOOL", tok.Literal)
+                }</span>
+        case token.IDENT:<span class="cov8" title="1">
+                idTok := p.stream.Next()
+                isMacro := false
+                if p.stream.Peek().Literal == "!" </span><span class="cov0" title="0">{
+                        isMacro = true
+                        p.stream.Next() // потребляем '!'
+                }</span>
+
+                // Проверяем, идёт ли после идентификатора '(' — тогда это вызов
+                <span class="cov8" title="1">if p.stream.Peek().Type == token.PUNCT &amp;&amp; p.stream.Peek().Literal == "(" </span><span class="cov8" title="1">{
+                        p.stream.Next() // потребляем '('
+                        args := []ast.Expr{}
+
+                        // Пустой список аргументов
+                        if p.stream.Peek().Type == token.PUNCT &amp;&amp; p.stream.Peek().Literal == ")" </span><span class="cov0" title="0">{
+                                p.stream.Next()
+                                fnLit := ast.NewLiteral(idTok.Pos(), "IDENT", idTok.Literal)
+                                call := ast.NewCallExpr(idTok.Pos(), fnLit, args)
+                                _ = isMacro // зарезервировано для будущей обработки макросов
+                                return call
+                        }</span>
+
+                        // Парсим аргументы
+                        <span class="cov8" title="1">for </span><span class="cov8" title="1">{
+                                arg := p.ParseExpr()
+                                if arg != nil </span><span class="cov8" title="1">{
+                                        args = append(args, arg)
+                                }</span> else<span class="cov0" title="0"> {
+                                        // Ошибка в аргументе: восстанавливаемся до ',' или ')'
+                                        for !p.stream.IsEOF() &amp;&amp; !(p.stream.Peek().Literal == "," || p.stream.Peek().Literal == ")") </span><span class="cov0" title="0">{
+                                                p.stream.Next()
+                                        }</span>
+                                        <span class="cov0" title="0">if p.stream.Peek().Literal == "," </span><span class="cov0" title="0">{
+                                                p.stream.Next()
+                                                continue</span>
+                                        }
+                                }
+
+                                <span class="cov8" title="1">if p.stream.Peek().Literal == "," </span><span class="cov8" title="1">{
+                                        p.stream.Next()
+                                        continue</span>
+                                }
+                                <span class="cov8" title="1">break</span>
+                        }
+
+                        <span class="cov8" title="1">p.expect(token.PUNCT, ")", ")")
+                        fnLit := ast.NewLiteral(idTok.Pos(), "IDENT", idTok.Literal)
+                        call := ast.NewCallExpr(idTok.Pos(), fnLit, args)
+                        _ = isMacro
+                        return call</span>
+                }
+
+                // Иначе — просто переменная или путь
+                <span class="cov8" title="1">return ast.NewLiteral(idTok.Pos(), "IDENT", idTok.Literal)</span>
+        case token.PUNCT:<span class="cov8" title="1">
+                if tok.Literal == "{" </span><span class="cov0" title="0">{
+                        block := p.ParseBlock()
+                        return ast.NewBlockExpr(pos, block)
+                }</span>
+                <span class="cov8" title="1">if tok.Literal == "(" </span><span class="cov8" title="1">{
+                        p.stream.Next()
+                        inner := p.ParseExpr()
+                        p.expect(token.PUNCT, ")", ")")
+                        return inner
+                }</span>
+        }
+
+        <span class="cov8" title="1">p.error("expected primary expression", tok)
+        p.stream.Next() // ВАЖНО: потребляем токен, вызвавший ошибку
+        return nil</span>
+}
+
+// ParseStmt парсит оператор (statement).
+// Поддерживает:
+//   - объявления переменных: `let x: i32 = 42;`
+//   - выражения с точкой с запятой: `foo();`
+//   - tail-выражения в блоках (без ';').
+//
+// В случае синтаксической ошибки возвращает nil и полагается на восстановление в вызывающем коде.
+func (p *Parser) ParseStmt() ast.Stmt <span class="cov8" title="1">{
+        tok := p.stream.Peek()
+        if tok.Literal == "let" </span><span class="cov8" title="1">{
+                p.stream.Next()
+                nameTok := p.expect(token.IDENT, "", "let binding name")
+                var typ ast.Type
+                if p.stream.Peek().Literal == ":" </span><span class="cov8" title="1">{
+                        p.stream.Next()
+                        typ = p.ParseType()
+                }</span>
+                <span class="cov8" title="1">if p.expect(token.OPERATOR, "=", "=").Type == token.EOF </span><span class="cov0" title="0">{
+                        return nil
+                }</span>
+                <span class="cov8" title="1">init := p.ParseExpr()
+                if init == nil </span><span class="cov0" title="0">{
+                        return nil
+                }</span>
+                <span class="cov8" title="1">if p.expect(token.TERMINATOR, ";", ";").Type == token.EOF </span><span class="cov0" title="0">{
+                        return nil
+                }</span>
+
+                <span class="cov8" title="1">if typ == nil </span><span class="cov8" title="1">{
+                        typ = ast.NewPathType(token.Position{}, "infer") // тип будет выведен позже
+                }</span>
+                <span class="cov8" title="1">return ast.NewLetStmt(tok.Pos(), nameTok.Literal, typ, init)</span>
+        }
+
+        <span class="cov8" title="1">expr := p.ParseExpr()
+        if expr == nil </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        // Выражение с точкой с запятой
+        <span class="cov8" title="1">if p.stream.Peek().Type == token.TERMINATOR </span><span class="cov8" title="1">{
+                p.stream.Next()
+                return ast.NewExprStmt(expr.Pos(), expr)
+        }</span>
+
+        // Tail-выражение в блоке (например, последнее выражение функции)
+        <span class="cov8" title="1">if p.stream.Peek().Literal == "}" </span><span class="cov8" title="1">{
+                return ast.NewExprStmt(expr.Pos(), expr)
+        }</span>
+
+        // Нет ни ';', ни '}' — ошибка
+        <span class="cov0" title="0">p.error("expected ';' after expression", p.stream.Peek())
+        return nil</span>
+}
+
+// ParseBlock парсит блок кода, ограниченный фигурными скобками.
+// Грамматика: Block ::= "{" Stmt* "}"
+// При ошибке в одном из операторов вызывает метод восстановления `recover`,
+// чтобы продолжить парсинг последующих операторов.
+func (p *Parser) ParseBlock() *ast.Block <span class="cov8" title="1">{
+        pos := p.stream.Pos()
+        p.expect(token.PUNCT, "{", "{")
+        stmts := []ast.Stmt{}
+
+        for !p.stream.IsEOF() &amp;&amp; p.stream.Peek().Literal != "}" </span><span class="cov8" title="1">{
+                stmt := p.ParseStmt()
+                if stmt != nil </span><span class="cov8" title="1">{
+                        stmts = append(stmts, stmt)
+                }</span> else<span class="cov8" title="1"> {
+                        // Ошибка в операторе — восстанавливаемся до точки с запятой
+                        p.recover(";")
+                }</span>
+        }
+        <span class="cov8" title="1">p.expect(token.PUNCT, "}", "}")
+        return ast.NewBlock(pos, stmts)</span>
+}
+
+// ParseType парсит простой тип по имени (например, `i32`, `String`).
+// Поддерживает ссылки (`&amp;T`), но без обработки lifetime'ов.
+// Грамматика: Type ::= Path | &amp;Type | ...
+// В текущей реализации `&amp;` просто игнорируется, и парсится базовый тип.
+func (p *Parser) ParseType() ast.Type <span class="cov8" title="1">{
+        if p.stream.Peek().Literal == "&amp;" </span><span class="cov0" title="0">{
+                p.stream.Next() // потребляем '&amp;'
+                // TODO: добавить поддержку lifetime'ов, например, &amp;'a T
+                return p.ParseType()
+        }</span>
+        <span class="cov8" title="1">tok := p.expect(token.IDENT, "", "type")
+        return ast.NewPathType(tok.Pos(), tok.Literal)</span>
+}
+
+// ParseField парсит поле структуры.
+// Грамматика: Field ::= IDENTIFIER ":" Type
+// Используется при парсинге определения структуры.
+func (p *Parser) ParseField() *ast.Field <span class="cov0" title="0">{
+        nameTok := p.expect(token.IDENT, "", "field name")
+        p.expect(token.PUNCT, ":", ":")
+        typ := p.ParseType()
+        return ast.NewField(nameTok.Pos(), nameTok.Literal, typ)
+}</span>
+
+// expect проверяет, что следующий токен соответствует ожидаемому типу и/или литералу.
+// Если нет — регистрирует ошибку и возвращает текущий токен.
+// Если да — потребляет токен и возвращает его.
+// Параметр `desc` используется в сообщении об ошибке для пояснения контекста.
+func (p *Parser) expect(typ token.TokenType, lit string, desc string) token.Token <span class="cov8" title="1">{
+        if p.stream.IsEOF() </span><span class="cov8" title="1">{
+                p.error(fmt.Sprintf("expected %s but got EOF", desc), token.Token{Type: token.EOF})
+                return token.Token{Type: token.EOF}
+        }</span>
+
+        <span class="cov8" title="1">tok := p.stream.Peek()
+        match := tok.Type == typ
+        if lit != "" </span><span class="cov8" title="1">{
+                match = match &amp;&amp; tok.Literal == lit
+        }</span>
+
+        <span class="cov8" title="1">if !match </span><span class="cov8" title="1">{
+                if desc == "" </span><span class="cov0" title="0">{
+                        desc = lit
+                }</span>
+                <span class="cov8" title="1">p.error(fmt.Sprintf("expected %s (got '%s')", desc, tok.Literal), tok)
+                return tok</span>
+        }
+
+        <span class="cov8" title="1">return p.stream.Next()</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">// internal/parser/parser.go
+
+// Package parser реализует рекурсивно-нисходящий парсер с базовым восстановлением после ошибок
+// для Rust-подобного языка, транслируемого в Go.
+package parser
+
+import (
+        "fmt"
+
+        "github.com/semetekare/rust2go/internal/ast"
+        "github.com/semetekare/rust2go/internal/token"
+)
+
+// Parser — основной парсер, управляющий процессом синтаксического анализа.
+// Поддерживает сбор ошибок и базовое восстановление после синтаксических ошибок (error recovery).
+type Parser struct {
+        stream TokenStream  // Поток токенов, полученный от лексического анализатора.
+        errors []ParseError // Список накопленных ошибок парсинга.
+}
+
+// ParseError представляет ошибку синтаксического анализа.
+// Содержит диагностическое сообщение, токен, вызвавший ошибку, и его позицию в исходном коде.
+type ParseError struct {
+        Msg string         // Описание ошибки.
+        Tok token.Token    // Токен, при обработке которого возникла ошибка.
+        Pos token.Position // Позиция токена в исходном файле.
+}
+
+// String возвращает человекочитаемое строковое представление ошибки парсинга.
+func (pe ParseError) String() string <span class="cov8" title="1">{
+        return fmt.Sprintf("Parse error at %d:%d: %s (got '%s')", pe.Pos.Line, pe.Pos.Col, pe.Msg, pe.Tok.Literal)
+}</span>
+
+// NewParser создаёт новый экземпляр парсера из списка токенов.
+// Токены должны быть получены от лексического анализатора (lexer).
+func NewParser(tokens []token.Token) *Parser <span class="cov8" title="1">{
+        return &amp;Parser{stream: NewTokenStream(tokens)}
+}</span>
+
+// ParseFile запускает полный синтаксический анализ входного потока токенов.
+// Возвращает корневой узел AST (Crate) и список всех обнаруженных ошибок.
+// Даже при наличии ошибок парсер пытается построить частично корректное AST.
+func (p *Parser) ParseFile() (*ast.Crate, []ParseError) <span class="cov8" title="1">{
+        ast := p.ParseCrate()
+        return ast, p.errors
+}</span>
+
+// error добавляет новую ошибку в список ошибок парсера.
+// Принимает диагностическое сообщение и токен, вызвавший ошибку.
+func (p *Parser) error(msg string, tok token.Token) <span class="cov8" title="1">{
+        p.errors = append(p.errors, ParseError{Msg: msg, Tok: tok, Pos: tok.Pos()})
+}</span>
+
+// recover реализует базовую стратегию восстановления после ошибки (error recovery).
+// Пропускает токены до тех пор, пока не встретит один из указанных синхронизирующих токенов
+// (например, ";", "}", или другие разделители), чтобы позволить парсеру продолжить работу.
+// Возвращает true, если восстановление было выполнено (в том числе при достижении EOF).
+// Если ошибок нет, восстановление не требуется и функция возвращает false.
+func (p *Parser) recover(syncs ...string) bool <span class="cov8" title="1">{
+        // Если ошибок нет — восстановление не нужно
+        if len(p.errors) == 0 </span><span class="cov0" title="0">{
+                return false
+        }</span>
+        <span class="cov8" title="1">for !p.stream.IsEOF() </span><span class="cov8" title="1">{
+                tok := p.stream.Peek()
+                // Если текущий токен — один из заданных синхронизирующих литералов,
+                // останавливаемся и оставляем его в потоке для последующей обработки
+                for _, s := range syncs </span><span class="cov8" title="1">{
+                        if tok.Literal == s </span><span class="cov8" title="1">{
+                                return true
+                        }</span>
+                }
+                // Если встретили явный конец оператора или блока — потребляем токен и завершаем восстановление
+                <span class="cov8" title="1">if tok.Type == token.TERMINATOR || (tok.Type == token.PUNCT &amp;&amp; (tok.Literal == "}" || tok.Literal == ";")) </span><span class="cov8" title="1">{
+                        p.stream.Next()
+                        return true
+                }</span>
+                // Иначе пропускаем текущий токен и продолжаем поиск точки синхронизации
+                <span class="cov8" title="1">p.stream.Next()</span>
+        }
+        <span class="cov0" title="0">return true</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">// internal/parser/stream.go
+
+// Package parser содержит реализацию парсера, преобразующего последовательность токенов
+// в абстрактное синтаксическое дерево (AST).
+package parser
+
+import "github.com/semetekare/rust2go/internal/token"
+
+// TokenStream — интерфейс для последовательного чтения токенов во время парсинга.
+// Предоставляет методы для безопасного продвижения по потоку токенов,
+// просмотра следующего токена без его извлечения и проверки конца входных данных.
+type TokenStream interface {
+        // Next возвращает следующий токен из потока и перемещает курсор вперёд.
+        // Если достигнут конец потока, возвращается токен типа token.EOF.
+        Next() token.Token
+
+        // Peek возвращает следующий токен без перемещения курсора («заглядывает» вперёд).
+        // При достижении конца возвращается токен типа token.EOF.
+        Peek() token.Token
+
+        // IsEOF возвращает true, если следующий токен — это конец файла (EOF).
+        IsEOF() bool
+
+        // Pos возвращает позицию следующего токена в исходном коде.
+        // Если достигнут конец потока, возвращается позиция токена EOF.
+        Pos() token.Position
+}
+
+// tokenStreamImpl — конкретная реализация интерфейса TokenStream,
+// работающая с заранее сформированным срезом токенов ([]token.Token).
+// Используется для парсинга после завершения лексического анализа.
+type tokenStreamImpl struct {
+        tokens []token.Token // Список токенов, полученных от лексера.
+        pos    int           // Текущая позиция курсора в срезе tokens.
+}
+
+// NewTokenStream создаёт новый экземпляр TokenStream на основе переданного среза токенов.
+// Начальная позиция курсора устанавливается в 0.
+func NewTokenStream(tokens []token.Token) TokenStream <span class="cov8" title="1">{
+        return &amp;tokenStreamImpl{tokens: tokens, pos: 0}
+}</span>
+
+// Next возвращает текущий токен и перемещает курсор на следующую позицию.
+// Если курсор выходит за пределы среза, возвращается токен EOF.
+func (ts *tokenStreamImpl) Next() token.Token <span class="cov8" title="1">{
+        if ts.pos &gt;= len(ts.tokens) </span><span class="cov0" title="0">{
+                return token.Token{Type: token.EOF}
+        }</span>
+        <span class="cov8" title="1">tok := ts.tokens[ts.pos]
+        ts.pos++
+        return tok</span>
+}
+
+// Peek возвращает токен в текущей позиции без изменения курсора.
+// Если позиция выходит за пределы среза, возвращается токен EOF.
+func (ts *tokenStreamImpl) Peek() token.Token <span class="cov8" title="1">{
+        if ts.pos &gt;= len(ts.tokens) </span><span class="cov0" title="0">{
+                return token.Token{Type: token.EOF}
+        }</span>
+        <span class="cov8" title="1">return ts.tokens[ts.pos]</span>
+}
+
+// IsEOF проверяет, достиг ли курсор конца потока токенов.
+// Возвращает true, если следующий токен — EOF.
+func (ts *tokenStreamImpl) IsEOF() bool <span class="cov8" title="1">{
+        return ts.Peek().Type == token.EOF
+}</span>
+
+// Pos возвращает позицию следующего токена (того, который вернёт Peek).
+// Если поток исчерпан, возвращается позиция фиктивного токена EOF.
+func (ts *tokenStreamImpl) Pos() token.Position <span class="cov8" title="1">{
+        return ts.Peek().Pos()
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">// Package sema реализует семантический анализ для Rust-подобного языка.
+// Выполняет проверки типов, разрешение символов и другие семантические проверки.
+package sema
+
+import (
+        "fmt"
+
+        "github.com/semetekare/rust2go/internal/ast"
+        "github.com/semetekare/rust2go/internal/token"
+)
+
+// Checker представляет семантический анализатор.
+// Содержит таблицы символов, информацию о типах и накопленные ошибки.
+type Checker struct {
+        // Диагностические сообщения о семантических ошибках
+        errors []SemanticError
+
+        // Таблица символов: карта имён -&gt; символы
+        symbols map[string]*Symbol
+
+        // Текущий контекст для отладки
+        currentFunction string
+}
+
+// SemanticError представляет семантическую ошибку (например, неопределённая переменная, несовпадение типов).
+type SemanticError struct {
+        Msg string         // Описание ошибки
+        Pos token.Position // Позиция в исходном коде
+}
+
+func (e SemanticError) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("Semantic error at %d:%d: %s", e.Pos.Line, e.Pos.Col, e.Msg)
+}</span>
+
+// SymbolKind представляет категорию символа.
+type SymbolKind int
+
+const (
+        SymbolVariable SymbolKind = iota
+        SymbolFunction
+        SymbolStruct
+)
+
+// Symbol представляет символ в таблице символов (переменная, функция, тип).
+type Symbol struct {
+        Kind     SymbolKind
+        Name     string
+        Type     TypeInfo
+        Pos      token.Position
+        Defined  bool
+        Function *ast.Function // Для функций: указатель на определение
+}
+
+// TypeInfo представляет информацию о типе.
+// В текущей реализации — упрощённая модель.
+type TypeInfo struct {
+        // Name — имя типа (например, "i32", "String", "()", "infer")
+        Name string
+        // IsArray — является ли тип массивом или срезом
+        IsArray bool
+        // IsReference — является ли тип ссылкой (&amp;T)
+        IsReference bool
+}
+
+// NewChecker создаёт новый семантический анализатор.
+func NewChecker() *Checker <span class="cov8" title="1">{
+        return &amp;Checker{
+                errors:  make([]SemanticError, 0),
+                symbols: make(map[string]*Symbol),
+        }
+}</span>
+
+// Check выполняет семантический анализ над AST.
+// Возвращает список обнаруженных семантических ошибок.
+func (c *Checker) Check(crate *ast.Crate) []SemanticError <span class="cov8" title="1">{
+        // Шаг 1: регистрируем все функции и структуры (декларации)
+        c.checkCrateDeclarations(crate)
+
+        // Шаг 2: проверяем тела функций (определения)
+        c.checkCrateDefinitions(crate)
+
+        return c.errors
+}</span>
+
+// checkCrateDeclarations регистрирует все top-level декларации (функции, структуры).
+func (c *Checker) checkCrateDeclarations(crate *ast.Crate) <span class="cov8" title="1">{
+        for _, item := range crate.Items </span><span class="cov8" title="1">{
+                switch it := item.(type) </span>{
+                case *ast.Function:<span class="cov8" title="1">
+                        c.registerFunction(it)</span>
+                case *ast.Struct:<span class="cov8" title="1">
+                        c.registerStruct(it)</span>
+                }
+        }
+}
+
+// registerFunction регистрирует функцию в таблице символов.
+func (c *Checker) registerFunction(fn *ast.Function) <span class="cov8" title="1">{
+        // Проверяем, не объявлена ли функция уже
+        if _, exists := c.symbols[fn.Name]; exists </span><span class="cov8" title="1">{
+                c.error(fmt.Sprintf("duplicate function declaration: %s", fn.Name), fn.Pos())
+                return
+        }</span>
+
+        // Определяем тип возвращаемого значения
+        <span class="cov8" title="1">retType := c.extractType(fn.ReturnType)
+
+        // Создаём символ функции
+        c.symbols[fn.Name] = &amp;Symbol{
+                Kind:     SymbolFunction,
+                Name:     fn.Name,
+                Type:     retType,
+                Pos:      fn.Pos(),
+                Defined:  true,
+                Function: fn,
+        }</span>
+}
+
+// registerStruct регистрирует структуру в таблице символов.
+func (c *Checker) registerStruct(st *ast.Struct) <span class="cov8" title="1">{
+        if _, exists := c.symbols[st.Name]; exists </span><span class="cov0" title="0">{
+                c.error(fmt.Sprintf("duplicate struct declaration: %s", st.Name), st.Pos())
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.symbols[st.Name] = &amp;Symbol{
+                Kind:    SymbolStruct,
+                Name:    st.Name,
+                Type:    TypeInfo{Name: st.Name},
+                Pos:     st.Pos(),
+                Defined: true,
+        }</span>
+}
+
+// checkCrateDefinitions проверяет тела функций на корректность.
+func (c *Checker) checkCrateDefinitions(crate *ast.Crate) <span class="cov8" title="1">{
+        for _, item := range crate.Items </span><span class="cov8" title="1">{
+                switch it := item.(type) </span>{
+                case *ast.Function:<span class="cov8" title="1">
+                        c.checkFunction(it)</span>
+                }
+        }
+}
+
+// checkFunction выполняет семантическую проверку функции.
+func (c *Checker) checkFunction(fn *ast.Function) <span class="cov8" title="1">{
+        c.currentFunction = fn.Name
+
+        // Создаём локальную область видимости для параметров
+        localScope := make(map[string]*Symbol)
+
+        // Регистрируем параметры как локальные переменные
+        for _, param := range fn.Params </span><span class="cov8" title="1">{
+                paramType := c.extractType(param.Type)
+                // Преобразуем str в String для согласованности
+                if paramType.Name == "str" </span><span class="cov0" title="0">{
+                        paramType.Name = "String"
+                }</span>
+                <span class="cov8" title="1">localScope[param.Name] = &amp;Symbol{
+                        Kind:    SymbolVariable,
+                        Name:    param.Name,
+                        Type:    paramType,
+                        Pos:     param.Pos(),
+                        Defined: true,
+                }</span>
+        }
+
+        // Проверяем тело функции с учётом локальной области
+        <span class="cov8" title="1">c.checkBlock(fn.Body, localScope)
+
+        c.currentFunction = ""</span>
+}
+
+// checkBlock проверяет блок операторов.
+func (c *Checker) checkBlock(block *ast.Block, scope map[string]*Symbol) <span class="cov8" title="1">{
+        for _, stmt := range block.Stmts </span><span class="cov8" title="1">{
+                c.checkStmt(stmt, scope)
+        }</span>
+}
+
+// checkStmt проверяет оператор.
+func (c *Checker) checkStmt(stmt ast.Stmt, scope map[string]*Symbol) <span class="cov8" title="1">{
+        switch s := stmt.(type) </span>{
+        case *ast.LetStmt:<span class="cov8" title="1">
+                c.checkLetStmt(s, scope)</span>
+        case *ast.ExprStmt:<span class="cov8" title="1">
+                c.checkExpr(s.Expr, scope)</span>
+        }
+}
+
+// checkLetStmt проверяет оператор объявления переменной.
+func (c *Checker) checkLetStmt(ls *ast.LetStmt, scope map[string]*Symbol) <span class="cov8" title="1">{
+        // Проверяем, не объявлена ли переменная уже
+        if _, exists := scope[ls.Name]; exists </span><span class="cov0" title="0">{
+                c.error(fmt.Sprintf("variable %s already declared in this scope", ls.Name), ls.Pos())
+                return
+        }</span>
+
+        // Тип инициализирующего выражения
+        <span class="cov8" title="1">initType := c.checkExpr(ls.Init, scope)
+
+        // Если тип объявлен явно
+        if ls.Type != nil </span><span class="cov8" title="1">{
+                declType := c.extractType(ls.Type)
+
+                // Если явный тип — "infer", значит тип должен выводиться из инициализатора
+                if declType.Name == "infer" </span><span class="cov8" title="1">{
+                        scope[ls.Name] = &amp;Symbol{
+                                Kind:    SymbolVariable,
+                                Name:    ls.Name,
+                                Type:    initType,
+                                Pos:     ls.Pos(),
+                                Defined: true,
+                        }
+                        return
+                }</span>
+
+                // Проверяем совпадение типов
+                <span class="cov8" title="1">if !c.typesCompatible(declType, initType) </span><span class="cov8" title="1">{
+                        c.error(fmt.Sprintf("type mismatch: expected %s, got %s", declType.Name, initType.Name), ls.Pos())
+                }</span>
+
+                // Регистрируем переменную в текущей области
+                <span class="cov8" title="1">scope[ls.Name] = &amp;Symbol{
+                        Kind:    SymbolVariable,
+                        Name:    ls.Name,
+                        Type:    declType,
+                        Pos:     ls.Pos(),
+                        Defined: true,
+                }</span>
+        } else<span class="cov0" title="0"> {
+                // Тип выводится из инициализатора
+                if initType.Name == "infer" </span><span class="cov0" title="0">{
+                        c.error("cannot infer type for variable without explicit type", ls.Pos())
+                        return
+                }</span>
+
+                <span class="cov0" title="0">scope[ls.Name] = &amp;Symbol{
+                        Kind:    SymbolVariable,
+                        Name:    ls.Name,
+                        Type:    initType,
+                        Pos:     ls.Pos(),
+                        Defined: true,
+                }</span>
+        }
+}
+
+// checkExpr проверяет выражение и возвращает его тип.
+func (c *Checker) checkExpr(expr ast.Expr, scope map[string]*Symbol) TypeInfo <span class="cov8" title="1">{
+        switch e := expr.(type) </span>{
+        case *ast.Literal:<span class="cov8" title="1">
+                return c.checkLiteral(e, scope)</span>
+        case *ast.BinaryExpr:<span class="cov8" title="1">
+                return c.checkBinaryExpr(e, scope)</span>
+        case *ast.UnaryExpr:<span class="cov8" title="1">
+                return c.checkUnaryExpr(e, scope)</span>
+        case *ast.CallExpr:<span class="cov8" title="1">
+                return c.checkCallExpr(e, scope)</span>
+        case *ast.BlockExpr:<span class="cov0" title="0">
+                return c.checkBlockExpr(e, scope)</span>
+        default:<span class="cov0" title="0">
+                c.error("unsupported expression type", expr.Pos())
+                return TypeInfo{Name: "()"}</span>
+        }
+}
+
+// checkLiteral проверяет литеральное значение.
+func (c *Checker) checkLiteral(lit *ast.Literal, scope map[string]*Symbol) TypeInfo <span class="cov8" title="1">{
+        switch lit.Kind </span>{
+        case "INT":<span class="cov8" title="1">
+                return TypeInfo{Name: "i32"}</span>
+        case "FLOAT":<span class="cov8" title="1">
+                return TypeInfo{Name: "f64"}</span>
+        case "STRING":<span class="cov8" title="1">
+                return TypeInfo{Name: "String"}</span>
+        case "BOOL":<span class="cov8" title="1">
+                return TypeInfo{Name: "bool"}</span>
+        case "IDENT":<span class="cov8" title="1">
+                // Идентификатор — нужно разрешить в таблице символов
+                return c.resolveIdentifier(lit, scope)</span>
+        default:<span class="cov0" title="0">
+                return TypeInfo{Name: "()"}</span>
+        }
+}
+
+// resolveIdentifier разрешает идентификатор (переменную или функцию).
+// Использует как глобальную таблицу символов, так и локальную область видимости.
+func (c *Checker) resolveIdentifier(lit *ast.Literal, scope map[string]*Symbol) TypeInfo <span class="cov8" title="1">{
+        name := lit.Val
+
+        // Проверяем, является ли это макросом (по Subtype)
+        // В лексере макросы помечаются как IDENT с Subtype = "MACRO"
+        if len(name) &gt; 0 &amp;&amp; name[len(name)-1] == '!' </span><span class="cov0" title="0">{
+                // Это встроенный макрос (println!, vec! и т.д.)
+                return TypeInfo{Name: "()"}
+        }</span>
+
+        // Сначала проверяем локальную область видимости (параметры, локальные переменные)
+        <span class="cov8" title="1">if scope != nil </span><span class="cov8" title="1">{
+                if sym, exists := scope[name]; exists </span><span class="cov8" title="1">{
+                        return sym.Type
+                }</span>
+        }
+
+        // Затем проверяем глобальную таблицу символов (функции, структуры)
+        <span class="cov8" title="1">sym := c.symbols[name]
+        if sym != nil </span><span class="cov0" title="0">{
+                return sym.Type
+        }</span>
+
+        <span class="cov8" title="1">c.error(fmt.Sprintf("undefined identifier: %s", name), lit.Pos())
+        return TypeInfo{Name: "()"}</span>
+}
+
+// checkBinaryExpr проверяет бинарное выражение.
+func (c *Checker) checkBinaryExpr(be *ast.BinaryExpr, scope map[string]*Symbol) TypeInfo <span class="cov8" title="1">{
+        leftType := c.checkExpr(be.Left, scope)
+        rightType := c.checkExpr(be.Right, scope)
+
+        // Проверка арифметических операций
+        if c.isArithmeticOp(be.Op) </span><span class="cov8" title="1">{
+                if !c.isNumeric(leftType) || !c.isNumeric(rightType) </span><span class="cov8" title="1">{
+                        c.error(fmt.Sprintf("operands of %s must be numeric", be.Op), be.Pos())
+                        return TypeInfo{Name: "()"}
+                }</span>
+                <span class="cov8" title="1">return leftType</span> // Результат арифметической операции имеет тот же тип
+        }
+
+        // Проверка операций сравнения
+        <span class="cov8" title="1">if c.isComparisonOp(be.Op) </span><span class="cov8" title="1">{
+                if !c.typesCompatible(leftType, rightType) </span><span class="cov8" title="1">{
+                        c.error(fmt.Sprintf("cannot compare %s with %s", leftType.Name, rightType.Name), be.Pos())
+                }</span>
+                <span class="cov8" title="1">return TypeInfo{Name: "bool"}</span>
+        }
+
+        // Проверка логических операций
+        <span class="cov8" title="1">if c.isLogicalOp(be.Op) </span><span class="cov8" title="1">{
+                if !c.isBool(leftType) || !c.isBool(rightType) </span><span class="cov8" title="1">{
+                        c.error(fmt.Sprintf("operands of %s must be boolean", be.Op), be.Pos())
+                }</span>
+                <span class="cov8" title="1">return TypeInfo{Name: "bool"}</span>
+        }
+
+        <span class="cov0" title="0">return TypeInfo{Name: "()"}</span>
+}
+
+// checkUnaryExpr проверяет унарное выражение.
+func (c *Checker) checkUnaryExpr(ue *ast.UnaryExpr, scope map[string]*Symbol) TypeInfo <span class="cov8" title="1">{
+        exprType := c.checkExpr(ue.Expr, scope)
+
+        switch ue.Op </span>{
+        case "-":<span class="cov8" title="1">
+                if !c.isNumeric(exprType) </span><span class="cov0" title="0">{
+                        c.error("operand of unary - must be numeric", ue.Pos())
+                }</span>
+                <span class="cov8" title="1">return exprType</span>
+        case "!":<span class="cov0" title="0">
+                if !c.isBool(exprType) </span><span class="cov0" title="0">{
+                        c.error("operand of unary ! must be boolean", ue.Pos())
+                }</span>
+                <span class="cov0" title="0">return TypeInfo{Name: "bool"}</span>
+        default:<span class="cov0" title="0">
+                return TypeInfo{Name: "()"}</span>
+        }
+}
+
+// checkCallExpr проверяет вызов функции.
+func (c *Checker) checkCallExpr(ce *ast.CallExpr, scope map[string]*Symbol) TypeInfo <span class="cov8" title="1">{
+        // Получаем функцию из литерала идентификатора
+        var fnName string
+        switch f := ce.Func.(type) </span>{
+        case *ast.Literal:<span class="cov8" title="1">
+                if f.Kind == "IDENT" </span><span class="cov8" title="1">{
+                        fnName = f.Val
+                }</span>
+        default:<span class="cov0" title="0">
+                c.error("expected function name in call", ce.Pos())
+                return TypeInfo{Name: "()"}</span>
+        }
+
+        // Проверяем на встроенные макросы (заканчиваются на !)
+        <span class="cov8" title="1">if len(fnName) &gt; 0 &amp;&amp; fnName[len(fnName)-1] == '!' </span><span class="cov8" title="1">{
+                // Встроенные макросы принимают произвольные аргументы и возвращают ()
+                for _, arg := range ce.Args </span><span class="cov8" title="1">{
+                        c.checkExpr(arg, scope)
+                }</span>
+                <span class="cov8" title="1">return TypeInfo{Name: "()"}</span>
+        }
+
+        // Ищем функцию в таблице символов
+        <span class="cov8" title="1">sym, exists := c.symbols[fnName]
+        if !exists </span><span class="cov0" title="0">{
+                c.error(fmt.Sprintf("undefined function: %s", fnName), ce.Pos())
+                return TypeInfo{Name: "()"}
+        }</span>
+
+        <span class="cov8" title="1">if sym.Kind != SymbolFunction || sym.Function == nil </span><span class="cov0" title="0">{
+                c.error(fmt.Sprintf("%s is not a function", fnName), ce.Pos())
+                return TypeInfo{Name: "()"}
+        }</span>
+
+        <span class="cov8" title="1">fn := sym.Function
+
+        // Проверяем количество аргументов
+        if len(ce.Args) != len(fn.Params) </span><span class="cov8" title="1">{
+                c.error(fmt.Sprintf("function %s expects %d arguments, got %d", fnName, len(fn.Params), len(ce.Args)), ce.Pos())
+                return TypeInfo{Name: "()"}
+        }</span>
+
+        // Проверяем типы аргументов
+        <span class="cov8" title="1">for i, arg := range ce.Args </span><span class="cov8" title="1">{
+                argType := c.checkExpr(arg, scope)
+                paramType := c.extractType(fn.Params[i].Type)
+
+                if !c.typesCompatible(paramType, argType) </span><span class="cov8" title="1">{
+                        c.error(fmt.Sprintf("argument %d of %s: expected %s, got %s", i+1, fnName, paramType.Name, argType.Name), ce.Pos())
+                }</span>
+        }
+
+        // Возвращаем тип возвращаемого значения функции
+        <span class="cov8" title="1">return c.extractType(fn.ReturnType)</span>
+}
+
+// checkBlockExpr проверяет блочное выражение.
+func (c *Checker) checkBlockExpr(be *ast.BlockExpr, scope map[string]*Symbol) TypeInfo <span class="cov0" title="0">{
+        // Для простоты возвращаем unit тип
+        // В полной реализации нужно анализировать последнее выражение блока
+        return TypeInfo{Name: "()"}
+}</span>
+
+// extractType извлекает информацию о типе из AST типа.
+func (c *Checker) extractType(t ast.Type) TypeInfo <span class="cov8" title="1">{
+        if t == nil </span><span class="cov0" title="0">{
+                return TypeInfo{Name: "()"}
+        }</span>
+
+        <span class="cov8" title="1">switch typ := t.(type) </span>{
+        case *ast.PathType:<span class="cov8" title="1">
+                return TypeInfo{Name: typ.Path}</span>
+        default:<span class="cov0" title="0">
+                return TypeInfo{Name: "()"}</span>
+        }
+}
+
+// typesCompatible проверяет совместимость типов.
+func (c *Checker) typesCompatible(t1, t2 TypeInfo) bool <span class="cov8" title="1">{
+        // Тип "infer" совместим с любым типом (вывод типа)
+        if t1.Name == "infer" || t2.Name == "infer" </span><span class="cov0" title="0">{
+                return true
+        }</span>
+
+        // str и &amp;str совместимы с String
+        <span class="cov8" title="1">if (t1.Name == "str" &amp;&amp; t2.Name == "String") || (t1.Name == "String" &amp;&amp; t2.Name == "str") </span><span class="cov0" title="0">{
+                return true
+        }</span>
+
+        // В упрощённой реализации считаем, что типы совместимы только если они идентичны
+        <span class="cov8" title="1">return t1.Name == t2.Name</span>
+}
+
+// isNumeric проверяет, является ли тип числовым.
+func (c *Checker) isNumeric(t TypeInfo) bool <span class="cov8" title="1">{
+        return t.Name == "i32" || t.Name == "i64" || t.Name == "f32" || t.Name == "f64" || t.Name == "i8" || t.Name == "i16" || t.Name == "u8" || t.Name == "u16" || t.Name == "u32" || t.Name == "u64"
+}</span>
+
+// isBool проверяет, является ли тип булевым.
+func (c *Checker) isBool(t TypeInfo) bool <span class="cov8" title="1">{
+        return t.Name == "bool"
+}</span>
+
+// isArithmeticOp проверяет, является ли оператор арифметическим.
+func (c *Checker) isArithmeticOp(op string) bool <span class="cov8" title="1">{
+        ops := map[string]bool{"+": true, "-": true, "*": true, "/": true, "%": true}
+        return ops[op]
+}</span>
+
+// isComparisonOp проверяет, является ли оператор оператором сравнения.
+func (c *Checker) isComparisonOp(op string) bool <span class="cov8" title="1">{
+        ops := map[string]bool{"==": true, "!=": true, "&lt;": true, "&gt;": true, "&lt;=": true, "&gt;=": true}
+        return ops[op]
+}</span>
+
+// isLogicalOp проверяет, является ли оператор логическим.
+func (c *Checker) isLogicalOp(op string) bool <span class="cov8" title="1">{
+        ops := map[string]bool{"&amp;&amp;": true, "||": true}
+        return ops[op]
+}</span>
+
+// error добавляет новую семантическую ошибку.
+func (c *Checker) error(msg string, pos token.Position) <span class="cov8" title="1">{
+        c.errors = append(c.errors, SemanticError{Msg: msg, Pos: pos})
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">// Пакет token определяет базовые типы для представления лексем (токенов),
+// выделяемых лексическим анализатором (лексером), а также их позиций в исходном коде.
+package token
+
+// TokenType — перечисление возможных типов токенов, которые может распознать лексер.
+// Каждый тип соответствует определённой категории лексем в языке.
+type TokenType int
+
+// String возвращает строковое представление типа токена.
+// Метод объявлен, но не реализован — должен быть заменён или удалён в рабочей версии.
+func (t TokenType) String() string <span class="cov8" title="1">{
+        panic("unimplemented")</span>
+}
+
+const (
+        // EOF — маркер конца входного потока (end-of-file).
+        // Указывает, что лексер достиг конца исходного кода.
+        EOF TokenType = iota
+
+        // IDENT — идентификатор: имя переменной, функции, типа и т.д.
+        // Примеры: x, my_var, Foo.
+        IDENT
+
+        // LIFETIME — lifetime-параметр из Rust (например, 'a, 'static).
+        // Используется для управления временем жизни значений.
+        LIFETIME
+
+        // KEYWORD — зарезервированное ключевое слово языка.
+        // Примеры: fn, let, if, while, struct, impl и т.д.
+        KEYWORD
+
+        // TYPE — литерал типа или имя типа.
+        // Примеры: i32, String, Vec&lt;T&gt;. Подтип уточняется в поле Subtype.
+        TYPE
+
+        // INT — целочисленный литерал.
+        // Поддерживает десятичную, двоичную (0b...), восьмеричную (0o...) и шестнадцатеричную (0x...) формы,
+        // а также суффиксы типов (например, 42u32).
+        INT
+
+        // FLOAT — литерал с плавающей точкой.
+        // Примеры: 3.14, 1e-5, 2.0f32.
+        FLOAT
+
+        // STRING — строковый литерал.
+        // Включает обычные строки ("..."), raw-строки (r#"..."#), байтовые строки (b"...") и их комбинации.
+        STRING
+
+        // CHAR — символьный литерал.
+        // Примеры: 'a', '\n', b'x' (байтовый символ).
+        CHAR
+
+        // OPERATOR — операторы языка.
+        // Примеры: +, -, ==, !=, &amp;&amp;, ||, =, += и т.д.
+        OPERATOR
+
+        // PUNCT — пунктуационные символы (разделители).
+        // Примеры: (, ), {, }, [, ], ,, ., :, :: и т.п.
+        PUNCT
+
+        // ATTRIBUTE — атрибуты Rust.
+        // Примеры: #[derive(Debug)], #![no_std], #[cfg(...)].
+        ATTRIBUTE
+
+        // TERMINATOR — отдельный токен для точки с запятой ';',
+        // используемой как завершитель операторов.
+        TERMINATOR
+
+        // ILLEGAL — недопустимый или не распознанный токен.
+        // Используется для обозначения синтаксических ошибок на этапе лексического анализа.
+        ILLEGAL
+)
+
+// Position представляет позицию символа в исходном коде.
+// Нумерация строк и колонок начинается с 1 (1-based).
+type Position struct {
+        Line int // Номер строки (начиная с 1).
+        Col  int // Номер колонки (начиная с 1).
+}
+
+// Token представляет один лексический токен, полученный в результате анализа исходного кода.
+type Token struct {
+        Type    TokenType // Основной тип токена (см. константы выше).
+        Subtype string    // Дополнительная информация о типе (например, "INT", "FLOAT" для TYPE).
+        Literal string    // Исходный текст токена, как он встречается в коде.
+        Line    int       // Номер строки, в которой находится токен (1-based).
+        Col     int       // Номер колонки начала токена (1-based).
+}
+
+// Pos возвращает позицию токена в виде структуры Position.
+func (t Token) Pos() Position <span class="cov8" title="1">{
+        return Position{Line: t.Line, Col: t.Col}
+}</span>
+
+// String возвращает человекочитаемое строковое представление токена,
+// включая его тип и, при необходимости, подтип.
+// Используется в основном для отладки и диагностических сообщений.
+func (t Token) String() string <span class="cov8" title="1">{
+        switch t.Type </span>{
+        case EOF:<span class="cov8" title="1">
+                return "EOF"</span>
+        case IDENT:<span class="cov8" title="1">
+                return "IDENT"</span>
+        case LIFETIME:<span class="cov0" title="0">
+                return "LIFETIME"</span>
+        case KEYWORD:<span class="cov8" title="1">
+                return "KEYWORD"</span>
+        case TYPE:<span class="cov8" title="1">
+                if t.Subtype != "" </span><span class="cov8" title="1">{
+                        return "TYPE(" + t.Subtype + ")"
+                }</span>
+                <span class="cov8" title="1">return "TYPE"</span>
+        case INT:<span class="cov8" title="1">
+                return "INT"</span>
+        case FLOAT:<span class="cov8" title="1">
+                return "FLOAT"</span>
+        case STRING:<span class="cov8" title="1">
+                return "STRING"</span>
+        case CHAR:<span class="cov8" title="1">
+                return "CHAR"</span>
+        case OPERATOR:<span class="cov8" title="1">
+                return "OPERATOR"</span>
+        case PUNCT:<span class="cov8" title="1">
+                return "PUNCT"</span>
+        case ATTRIBUTE:<span class="cov0" title="0">
+                return "ATTRIBUTE"</span>
+        case TERMINATOR:<span class="cov8" title="1">
+                return "TERMINATOR"</span>
+        case ILLEGAL:<span class="cov8" title="1">
+                return "ILLEGAL"</span>
+        default:<span class="cov0" title="0">
+                return "UNKNOWN"</span>
+        }
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

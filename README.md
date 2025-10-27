@@ -14,6 +14,10 @@
 >
 >```go test -run TestNegativeSyntax ./internal/parser```
 
+## Покрытие тестами
+```go tool ./... cover -html=coverage.out``` - генерация файла с данными о покрытии
+
+```go tool cover -html=coverage.out``` - создать и открыть отчет о покрытии в браузере
 
 ---
 # Структура проекта
@@ -39,7 +43,8 @@ rust2go/ # корень проекта
 │ ├── sema/ # семантический анализ (типизация, проверки) 
 │ │ └── checker.go 
 │ ├── ir/ # промежуточное представление (необязательно сразу) 
-│ │ └── ir.go │ ├── backend/ # генерация кода (Go, WASM, и т.д.) 
+│ │ └── ir.go 
+│ ├── backend/ # генерация кода (Go, WASM, и т.д.) 
 │ │ └── go_backend.go 
 │ └── util/ # вспомогательные утилиты: errors, positions, testing helpers  
 ├── example/ 

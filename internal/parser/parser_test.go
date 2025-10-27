@@ -14,12 +14,12 @@ import (
 // runTestFile считывает файл, токенизирует его и запускает парсер.
 func runTestFile(t *testing.T, filename string) (*ast.Crate, []parser.ParseError) {
 	t.Helper()
-	
+
 	// Путь относительно корня проекта, предполагаем, что тесты запускаются из корня
 	// или используем filepath.Join, если тесты запускаются из `internal/parser`.
 	// Для надежности используем относительный путь `../../../testdata/...`
 	filePath := filepath.Join("..", "..", "testdata", filename) // <--- ИЗМЕНЕНИЕ ЗДЕСЬ
-	
+
 	b, err := os.ReadFile(filePath)
 	if err != nil {
 		t.Fatalf("Failed to read file %s: %v", filePath, err)
@@ -47,8 +47,15 @@ func TestPositiveSyntax(t *testing.T) {
 	}{
 		{"Simple Function and Call", "positive/fn_simple.rs"},
 		{"Complex Boolean Expression", "positive/expr_complex.rs"},
-		// Добавьте другие корректные файлы для покрытия всех конструкций
-		// {"Struct Definition", "positive/struct_def.rs"},
+		{"Struct Definition", "positive/struct_def.rs"},
+		{"Multiple Functions", "positive/multiple_functions.rs"},
+		{"Nested Expressions", "positive/nested_expressions.rs"},
+		{"Comparison Operations", "positive/comparison_ops.rs"},
+		{"Logical Operations", "positive/logical_ops.rs"},
+		{"Unary Operations", "positive/unary_ops.rs"},
+		{"Macro Calls", "positive/macro_calls.rs"},
+		{"Type Inference", "positive/type_inference.rs"},
+		{"Arithmetic Operations", "positive/arithmetic.rs"},
 	}
 
 	for _, tt := range tests {
@@ -69,12 +76,12 @@ func TestPositiveSyntax(t *testing.T) {
 				t.Errorf("AST should not be nil")
 				return
 			}
-			
+
 			// 3. Проверяем структуру (например, количество top-level элементов)
 			if len(ast.Items) < 1 {
 				t.Errorf("Expected at least 1 item in AST, got 0")
 			}
-			
+
 			// 4. Дополнительная проверка на конкретные узлы
 			// if tt.name == "Simple Function and Call" && len(ast.Items) != 2 {
 			//     t.Errorf("Expected 2 functions (add, main), got %d", len(ast.Items))
@@ -91,13 +98,14 @@ func TestPositiveSyntax(t *testing.T) {
 
 func TestNegativeSyntax(t *testing.T) {
 	tests := []struct {
-		name string
-		file string
+		name           string
+		file           string
 		expectedErrors int // Ожидаемое минимальное количество ошибок
 	}{
 		{"Missing Semicolon", "negative/missing_semi.rs", 1},
 		{"Missing Closing Parenthesis", "negative/missing_paren.rs", 1},
 		{"Bad Binary Operator", "negative/bad_operator.rs", 1},
+		// Остальные негативные тесты проверяются семантическим анализатором
 	}
 
 	for _, tt := range tests {
@@ -114,7 +122,7 @@ func TestNegativeSyntax(t *testing.T) {
 			if len(errs) < tt.expectedErrors {
 				t.Errorf("Expected at least %d errors, but got only %d", tt.expectedErrors, len(errs))
 			}
-			
+
 			t.Logf("Successfully detected %d error(s). First error: %s", len(errs), errs[0])
 		})
 	}
